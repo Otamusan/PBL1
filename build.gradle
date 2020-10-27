@@ -3,3 +3,16 @@ apply plugin: 'application'
 apply plugin: 'java'
 
 mainClassName = 'otamusan.pbl.App'
+buildscript{
+	repositories {
+        	mavenCentral()
+    	}
+}
+
+repositories {
+        mavenCentral()
+}
+
+dependencies {
+    	implementation 'javax.websocket:javax.websocket-api:1.1'
+}
