@@ -25,6 +25,7 @@ public class Server {
 
 	public void run() throws IOException {
 
+		System.out.println("サーバー起動");
 		DatagramSocket sock = new DatagramSocket(10005);//10005ポートでUDP受信用ソケット構築
 		byte[] data = new byte[1024];//受信最大バッファ
 		DatagramPacket packet = new DatagramPacket(data, data.length);//受信用パケットを構築

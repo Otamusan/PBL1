@@ -25,7 +25,7 @@ public class Client {
 	}
 
 	public void run() throws IOException {
-
+		System.out.println("クライアント起動");
 		String sendData = "UDPてすとですよ";//送信データ
 		byte[] data = sendData.getBytes("UTF-8");//UTF-8バイト配列の作成
 		DatagramSocket sock = new DatagramSocket();//UDP送信用ソケットの構築
