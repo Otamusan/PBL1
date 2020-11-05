@@ -7,7 +7,7 @@ public class App {
 
 		Client client = new Client(delay);
 		Server server = new Server(delay);
-		
+
 		client.run();
 		server.run();
 	}

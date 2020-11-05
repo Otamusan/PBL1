@@ -10,6 +10,11 @@ public class Server {
 		this.delay = delay;
 	}
 
+	public static void main(String[] args) {
+		Server server = new Server(App.delay);
+		server.run();
+	}
+
 	public void run() {
 		Timer main = new Timer();
 		main.schedule(new TimerTask() {
