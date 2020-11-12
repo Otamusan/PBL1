@@ -6,35 +6,30 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 
-public class ServerConnection {
-	private InetSocketAddress address;
+public class Connection {
 	private DatagramChannel channel;
+	private InetSocketAddress addressSend;
+	private InetSocketAddress addressReceive;
+
 	private Thread thread;
 	private Data data;
 
-	public ServerConnection(InetSocketAddress address) {
-		this.address = address;
+	public Connection(InetSocketAddress send, InetSocketAddress receive) {
+		this.addressSend = send;
+		this.addressReceive = receive;
 	}
 
-	public void onUpdate() {
+	public Connection(InetSocketAddress address) {
+		this(address, address);
 	}
 
 	public void open() throws IOException {
-		System.out.println("ServerOpen");
 		this.channel = DatagramChannel.open();
-		this.channel.bind(this.address);
+		this.channel.bind(this.addressReceive);
 		this.data = new Data();
 
 		this.thread = new Thread(new Read(this.channel, this.data));
-		this.thread.run();
-	}
-
-	public void close() throws IOException {
-		this.channel.close();
-	}
-
-	public static class Data {
-		public String string = "empty";
+		this.thread.start();
 
 	}
 
@@ -61,5 +56,21 @@ public class ServerConnection {
 				this.data.string = StandardCharsets.UTF_8.decode(bb).toString();
 			}
 		}
+	}
+
+	public static class Data {
+		public String string = "empty";
+	}
+
+	public void onUpdate() {
+
+	}
+
+	public void send(ByteBuffer buffer) throws IOException {
+		this.channel.send(buffer, this.addressSend);
+	}
+
+	public void close() throws IOException {
+		this.channel.close();
 	}
 }

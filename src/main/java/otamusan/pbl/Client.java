@@ -10,11 +10,12 @@ import java.util.TimerTask;
 public class Client {
 	private int delay;
 
-	private ClientConnection connection;
+	private Connection connection;
 
 	public Client(int delay) {
 		this.delay = delay;
-		this.connection = new ClientConnection(new InetSocketAddress("localhost", 10003));
+		this.connection = new Connection(new InetSocketAddress("localhost", 10004),
+				new InetSocketAddress("localhost", 10003));
 	}
 
 	public static void main(String[] args) {
@@ -29,7 +30,6 @@ public class Client {
 		} catch (IOException e) {
 
 		}
-
 		Timer main = new Timer();
 		main.schedule(new TimerTask() {
 			@Override
