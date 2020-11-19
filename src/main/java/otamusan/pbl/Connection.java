@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 
-import otamusan.pbl.Data.IDataType;
-
 public class Connection {
 	private DatagramChannel channel;
 	private InetSocketAddress addressSend;
@@ -15,7 +13,7 @@ public class Connection {
 
 	private Thread thread;
 	private Data data;
-	private static final int cap = 1024;
+	public static final int cap = 1024;
 
 	public Connection(InetSocketAddress send, InetSocketAddress receive) {
 		this.addressSend = send;
@@ -71,11 +69,6 @@ public class Connection {
 
 	public void send(ByteBuffer buffer) throws IOException {
 		this.channel.send(buffer, this.addressSend);
-	}
-
-	public <T> void send(IDataType<T> encode) throws IOException {
-		ByteBuffer buffer = encode.encode();
-		this.send(buffer);
 	}
 
 	public void close() throws IOException {
