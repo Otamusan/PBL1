@@ -1,14 +1,12 @@
 package otamusan.pbl.Data;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import otamusan.pbl.Connection;
 import otamusan.pbl.Wrap;
 
 public class DataTypes {
@@ -18,12 +16,12 @@ public class DataTypes {
 	public int count = 0;
 	public static final IDataType<Integer> TYPE_INT = new ByteInt();
 	public static final IDataType<Double> TYPE_DOUBLE = new ByteDouble();
-	public static final IDataType<String> TYPE_STRING = new ByteString();
+	public static final IDataType<Character> TYPE_CHAR = new ByteChar();
 
 	public DataTypes() {
 		this.register(TYPE_INT);
 		this.register(TYPE_DOUBLE);
-		this.register(TYPE_STRING);
+		this.register(TYPE_CHAR);
 	}
 
 	public <T> void register(IDataType<T> dataType) {
@@ -62,77 +60,26 @@ public class DataTypes {
 	}
 
 	public <T> ByteBuffer getBuffer(T t, IDataType<T> type) {
-		System.out.println(type.decode(type.encode(t)));
-		return this.addType(type.encode(t), type);
-	}
+		ByteBuffer newBuffer = ByteBuffer.allocate(type.getCapacity() + 4);
 
-	private <T> ByteBuffer addType(ByteBuffer buffer, IDataType<T> type) {
-		ByteBuffer newBuffer = ByteBuffer.allocate(Connection.cap);
 		if (!this.getNameById(type.name()).isPresent())
 			throw new Error("Unknown ID");
+
 		this.getNameById(type.name()).ifPresent(id -> {
 			newBuffer.putInt(id);
 		});
 
-		newBuffer.put(buffer);
+		type.encode(t, newBuffer);
+
+		newBuffer.flip();
 		return newBuffer;
 	}
 
 	public Object getValue(ByteBuffer buffer) {
-		int id = buffer.get();
+		int id = buffer.getInt();
 		IDataType<?> type = this.getTypeById(id).get();
 		Object value = type.decode(buffer);
 		return value;
 	}
 
-	public static class ByteInt implements IDataType<Integer> {
-		@Override
-		public ByteBuffer encode(Integer integer) {
-			return ByteBuffer.allocate(4).putInt(integer);
-		}
-
-		@Override
-		public String name() {
-			return "int";
-		}
-
-		@Override
-		public Integer decode(ByteBuffer buffer) {
-			return buffer.getInt();
-		}
-	}
-
-	public static class ByteDouble implements IDataType<Double> {
-		@Override
-		public ByteBuffer encode(Double n) {
-			return ByteBuffer.allocate(8).putDouble(n);
-		}
-
-		@Override
-		public String name() {
-			return "double";
-		}
-
-		@Override
-		public Double decode(ByteBuffer buffer) {
-			return buffer.getDouble();
-		}
-	}
-
-	public static class ByteString implements IDataType<String> {
-		@Override
-		public ByteBuffer encode(String n) {
-			return StandardCharsets.UTF_8.encode(n);
-		}
-
-		@Override
-		public String name() {
-			return "string";
-		}
-
-		@Override
-		public String decode(ByteBuffer buffer) {
-			return StandardCharsets.UTF_8.decode(buffer).toString();
-		}
-	}
 }

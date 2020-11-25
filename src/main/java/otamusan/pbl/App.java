@@ -9,7 +9,7 @@ public class App {
 
 	public static void main(String[] args) {
 		DataTypes dataTypes = new DataTypes();
-		ByteBuffer buffer = dataTypes.getBuffer(423432, DataTypes.TYPE_INT);
+		ByteBuffer buffer = dataTypes.getBuffer('A', DataTypes.TYPE_CHAR);
 		Object value = dataTypes.getValue(buffer);
 		System.out.println(value);
 	}
