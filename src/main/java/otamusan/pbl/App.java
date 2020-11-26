@@ -1,12 +1,13 @@
 package otamusan.pbl;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import otamusan.pbl.DataTypeManager.HolderKey;
-import otamusan.pbl.Data.ByteTuple;
+import otamusan.pbl.Data.ByteList;
 import otamusan.pbl.Data.IDataType;
-import otamusan.pbl.Data.Tuple;
 
 public class App {
 	public final static int delay = 17;
@@ -14,21 +15,27 @@ public class App {
 	public static void main(String[] args) {
 		DataTypeManager manager = new DataTypeManager();
 
-		IDataType<Tuple<Integer, Character>> typeTuple = new ByteTuple<Integer, Character>(DataTypeManager.TYPE_INT,
-				DataTypeManager.TYPE_CHAR);
+		IDataType<List<Character>> typelist = new ByteList<Character>(4, DataTypeManager.TYPE_CHAR);
 
-		HolderKey<Tuple<Integer, Character>> key = manager.register(typeTuple);
+		HolderKey<List<Character>> key = manager.register(typelist);
 
-		ByteBuffer buffer = manager.getBuffer(new Tuple<Integer, Character>(4, 'A'), key);
+		List<Character> list = new ArrayList<Character>() {
+			{
+				this.add('t');
+				this.add('e');
+				this.add('s');
+				this.add('t');
+			}
+		};
+
+		ByteBuffer buffer = manager.getBuffer(list, key);
 
 		manager.receive(buffer);
 
 		manager.update();
 
-		Optional<Tuple<Integer, Character>> tuple = manager.getData(key);
-		System.out.println(tuple);
-		tuple.ifPresent((t) -> {
-			System.out.println(t.getRight().toString() + t.getLeft());
-		});
+		Optional<List<Character>> list1 = manager.getData(key);
+		System.out.println(list1);
+
 	}
 }
