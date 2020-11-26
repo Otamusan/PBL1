@@ -2,7 +2,10 @@ package otamusan.pbl;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import otamusan.pbl.Data.ByteChar;
@@ -13,12 +16,23 @@ import otamusan.pbl.Data.IDataType;
 public class DataTypeManager {
 	private List<DataHolder> buffers;
 	private int count;
+	private Map<Integer, HolderKey<?>> id2keyMap;
+
 	public static final IDataType<Integer> TYPE_INT = new ByteInt();
 	public static final IDataType<Double> TYPE_DOUBLE = new ByteDouble();
 	public static final IDataType<Character> TYPE_CHAR = new ByteChar();
 
 	public DataTypeManager() {
 		this.buffers = new ArrayList<DataHolder>();
+		this.id2keyMap = new HashMap<Integer, DataTypeManager.HolderKey<?>>();
+	}
+
+	public Optional<Integer> getIDfromKey(HolderKey<?> holderKey) {
+		for (Entry<Integer, HolderKey<?>> entry : this.id2keyMap.entrySet()) {
+			if (holderKey == entry.getValue())
+				return Optional.of(entry.getKey());
+		}
+		return Optional.empty();
 	}
 
 	public void update() {
@@ -28,14 +42,14 @@ public class DataTypeManager {
 	}
 
 	public <T> ByteBuffer getBuffer(T t, HolderKey<T> key) {
-
-		if (key.getDataType() != this.getDataTypeById(key.getId())) {
+		if (!this.getIDfromKey(key).isPresent())
+			throw new Error();
+		if (key.getDataType() != this.getDataTypeById(this.getIDfromKey(key).get()))
 			throw new Error("dataType and anonther from id are mismatched");
-		}
 
 		ByteBuffer newBuffer = ByteBuffer.allocate(key.getDataType().getCapacity() + 4);
 
-		newBuffer.putInt(key.getId());
+		newBuffer.putInt(this.getIDfromKey(key).get());
 
 		key.getDataType().encode(t, newBuffer);
 
@@ -43,12 +57,12 @@ public class DataTypeManager {
 		return newBuffer;
 	}
 
-	public Object getValue(ByteBuffer buffer) {
+	/*public Object getValue(ByteBuffer buffer) {
 		int id = buffer.getInt();
 		IDataType<?> type = this.getDataTypeById(id);
 		Object value = type.decode(buffer);
 		return value;
-	}
+	}*/
 
 	public void receive(ByteBuffer buffer) {
 		int id = buffer.getInt();
@@ -58,7 +72,9 @@ public class DataTypeManager {
 	}
 
 	public <T> Optional<T> getData(HolderKey<T> key) {
-		DataHolder holder = this.buffers.get(key.getId());
+		if (!this.getIDfromKey(key).isPresent())
+			return Optional.empty();
+		DataHolder holder = this.buffers.get(this.getIDfromKey(key).get());
 		IDataType<T> type = key.getDataType();
 		return holder.get().flatMap(t -> type.cast(t));
 	}
@@ -70,21 +86,17 @@ public class DataTypeManager {
 	public <T> HolderKey<T> register(IDataType<T> dataType) {
 		int i = this.count;
 		this.buffers.add(new DataHolder(dataType));
+		HolderKey<T> holderKey = new HolderKey<T>(dataType);
+		this.id2keyMap.put(i, holderKey);
 		this.count++;
-		return new HolderKey<T>(dataType, i);
+		return holderKey;
 	}
 
 	public static class HolderKey<T> {
 		private IDataType<T> dataType;
-		private int id;
 
-		public HolderKey(IDataType<T> type, int id) {
+		public HolderKey(IDataType<T> type) {
 			this.dataType = type;
-			this.id = id;
-		}
-
-		public int getId() {
-			return this.id;
 		}
 
 		public IDataType<T> getDataType() {

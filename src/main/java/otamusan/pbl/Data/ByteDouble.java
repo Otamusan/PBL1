@@ -5,13 +5,8 @@ import java.util.Optional;
 
 public class ByteDouble implements IDataType<Double> {
 	@Override
-	public ByteBuffer encode(Double n, ByteBuffer buffer) {
-		return buffer.putDouble(n);
-	}
-
-	@Override
-	public String name() {
-		return "double";
+	public void encode(Double n, ByteBuffer buffer) {
+		buffer.putDouble(n);
 	}
 
 	@Override
@@ -26,8 +21,13 @@ public class ByteDouble implements IDataType<Double> {
 
 	@Override
 	public Optional<Double> cast(Object o) {
-		if (o instanceof Character)
+		if (this.isCastable(o))
 			return Optional.of((Double) o);
 		return Optional.empty();
+	}
+
+	@Override
+	public boolean isCastable(Object o) {
+		return o instanceof Double;
 	}
 }

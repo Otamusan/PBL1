@@ -5,13 +5,8 @@ import java.util.Optional;
 
 public class ByteInt implements IDataType<Integer> {
 	@Override
-	public ByteBuffer encode(Integer integer, ByteBuffer buffer) {
-		return buffer.putInt(integer);
-	}
-
-	@Override
-	public String name() {
-		return "int";
+	public void encode(Integer integer, ByteBuffer buffer) {
+		buffer.putInt(integer);
 	}
 
 	@Override
@@ -26,8 +21,13 @@ public class ByteInt implements IDataType<Integer> {
 
 	@Override
 	public Optional<Integer> cast(Object o) {
-		if (o instanceof Character)
+		if (this.isCastable(o))
 			return Optional.of((Integer) o);
 		return Optional.empty();
+	}
+
+	@Override
+	public boolean isCastable(Object o) {
+		return o instanceof Integer;
 	}
 }

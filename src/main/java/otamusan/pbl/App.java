@@ -15,10 +15,10 @@ public class App {
 		ByteBuffer buffer = manager.getBuffer('A', key);
 
 		manager.receive(buffer);
+
 		manager.update();
 
 		Optional<Character> character = manager.getData(key);
-
 		System.out.println(character);
 	}
 }

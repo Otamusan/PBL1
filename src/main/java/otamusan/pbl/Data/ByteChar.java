@@ -5,13 +5,8 @@ import java.util.Optional;
 
 public class ByteChar implements IDataType<Character> {
 	@Override
-	public ByteBuffer encode(Character n, ByteBuffer buffer) {
-		return buffer.putChar(n);
-	}
-
-	@Override
-	public String name() {
-		return "char";
+	public void encode(Character n, ByteBuffer buffer) {
+		buffer.putChar(n);
 	}
 
 	@Override
@@ -27,8 +22,13 @@ public class ByteChar implements IDataType<Character> {
 	@Override
 	public Optional<Character> cast(Object o) {
 		//System.out.println(o);
-		if (o instanceof Character)
+		if (this.isCastable(o))
 			return Optional.of((Character) o);
 		return Optional.empty();
+	}
+
+	@Override
+	public boolean isCastable(Object o) {
+		return o instanceof Character;
 	}
 }
