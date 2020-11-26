@@ -1,5 +1,0 @@
-apply plugin: 'eclipse'
-apply plugin: 'application'
-apply plugin: 'java'
-
-mainClassName = 'otamusan.pbl.App'
