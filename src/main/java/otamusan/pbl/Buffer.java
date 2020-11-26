@@ -31,4 +31,9 @@ public class Buffer<T> {
 			return Optional.empty();
 		return Optional.of(this.current);
 	}
+
+	@Override
+	public String toString() {
+		return "[current:" + this.current + ",buffer:" + this.buffer + "]";
+	}
 }
