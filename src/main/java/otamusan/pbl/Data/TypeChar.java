@@ -3,7 +3,7 @@ package otamusan.pbl.Data;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public class ByteChar implements IDataType<Character> {
+public class TypeChar implements IDataSerializer<Character> {
 	@Override
 	public void encode(Character n, ByteBuffer buffer) {
 		buffer.putChar(n);

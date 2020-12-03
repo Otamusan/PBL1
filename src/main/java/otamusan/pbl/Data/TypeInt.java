@@ -3,7 +3,7 @@ package otamusan.pbl.Data;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public class ByteInt implements IDataType<Integer> {
+public class TypeInt implements IDataSerializer<Integer> {
 	@Override
 	public void encode(Integer integer, ByteBuffer buffer) {
 		buffer.putInt(integer);

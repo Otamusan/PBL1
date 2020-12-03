@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import otamusan.pbl.DataTypeManager.HolderKey;
-import otamusan.pbl.Data.ByteList;
-import otamusan.pbl.Data.IDataType;
+import otamusan.pbl.DataTypeManager.ContainerKey;
+import otamusan.pbl.Data.TypeList;
+import otamusan.pbl.Data.IDataSerializer;
 
 public class App {
 	public final static int delay = 17;
@@ -15,27 +15,61 @@ public class App {
 	public static void main(String[] args) {
 		DataTypeManager manager = new DataTypeManager();
 
-		IDataType<List<Character>> typelist = new ByteList<Character>(4, DataTypeManager.TYPE_CHAR);
+		IDataSerializer<List<List<Integer>>> typelist = new TypeList<List<Integer>>(4,
+				new TypeList<>(4, DataTypeManager.TYPE_INT));
 
-		HolderKey<List<Character>> key = manager.register(typelist);
+		ContainerKey<List<List<Integer>>> key = manager.register(typelist);
 
-		List<Character> list = new ArrayList<Character>() {
+		List<Integer> list1 = new ArrayList<Integer>() {
 			{
-				this.add('t');
-				this.add('e');
-				this.add('s');
-				this.add('t');
+				this.add(4);
+				this.add(6);
+				this.add(3);
+				this.add(44445);
+			}
+		};
+		List<Integer> list2 = new ArrayList<Integer>() {
+			{
+				this.add(4);
+				this.add(6);
+				this.add(3);
+				this.add(44445);
+			}
+		};
+		List<Integer> list3 = new ArrayList<Integer>() {
+			{
+				this.add(4);
+				this.add(6);
+				this.add(3);
+				this.add(44445);
+			}
+		};
+		List<Integer> list4 = new ArrayList<Integer>() {
+			{
+				this.add(4);
+				this.add(6);
+				this.add(3);
+				this.add(44445);
+			}
+		};
+		List<List<Integer>> list5 = new ArrayList<List<Integer>>() {
+			{
+				this.add(list1);
+				this.add(list2);
+				this.add(list3);
+				this.add(list4);
 			}
 		};
 
-		ByteBuffer buffer = manager.getBuffer(list, key);
+		ByteBuffer buffer = manager.getBuffer(list5, key);
 
 		manager.receive(buffer);
 
 		manager.update();
 
-		Optional<List<Character>> list1 = manager.getData(key);
-		System.out.println(list1);
+		Optional<List<List<Integer>>> list6 = manager.getData(key);
+		System.out.println(list6);
 
 	}
+
 }

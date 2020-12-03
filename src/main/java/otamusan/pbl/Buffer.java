@@ -8,11 +8,11 @@ public class Buffer<T> {
 	private T previous;
 
 	public void update() {
+		this.previous = this.current;
 		this.current = this.buffer;
 	}
 
 	public void put(T t) {
-		this.previous = this.current;
 		this.buffer = t;
 	}
 

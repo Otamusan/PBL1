@@ -4,41 +4,55 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
+import otamusan.pbl.DataTypeManager.ContainerKey;
+import otamusan.pbl.Data.IDataSerializer;
 
 public class Connection {
 	private DatagramChannel channel;
 	private InetSocketAddress addressSend;
 	private InetSocketAddress addressReceive;
 
+	private DataTypeManager typeManager;
 	private Thread thread;
-	private Data data;
-	public static final int cap = 1024;
 
 	public Connection(InetSocketAddress send, InetSocketAddress receive) {
 		this.addressSend = send;
 		this.addressReceive = receive;
+		this.typeManager = new DataTypeManager();
 	}
 
 	public Connection(InetSocketAddress address) {
 		this(address, address);
 	}
 
+	public <T> ContainerKey<T> register(IDataSerializer<T> dataType) {
+		return this.typeManager.register(dataType);
+	}
+
+	public <T> Boolean isChange(ContainerKey<T> key) {
+		return this.typeManager.isChange(key);
+	}
+
+	public <T> Optional<T> getData(ContainerKey<T> key) {
+		return this.typeManager.getData(key);
+	}
+
 	public void open() throws IOException {
+		this.typeManager.lock();
 		this.channel = DatagramChannel.open();
 		this.channel.bind(this.addressReceive);
-		this.data = new Data();
 
-		this.thread = new Thread(new Read(this.channel, this.data));
+		this.thread = new Thread(new Read(this.channel, this.typeManager));
 		this.thread.start();
-
 	}
 
 	public static class Read implements Runnable {
 		private DatagramChannel channel;
-		private Data data;
+		private DataTypeManager data;
 
-		public Read(DatagramChannel channel, Data data) {
+		public Read(DatagramChannel channel, DataTypeManager data) {
 			this.channel = channel;
 			this.data = data;
 		}
@@ -46,15 +60,14 @@ public class Connection {
 		@Override
 		public void run() {
 			while (true) {
-				ByteBuffer bb = ByteBuffer.allocate(cap);
+				ByteBuffer bb = ByteBuffer.allocate(this.data.CAP);
 				try {
 					this.channel.receive(bb);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 				bb.flip();
-				System.out.println(StandardCharsets.UTF_8.decode(bb).toString());
-				this.data.string = StandardCharsets.UTF_8.decode(bb).toString();
+				this.data.receive(bb);
 			}
 		}
 	}
@@ -64,10 +77,11 @@ public class Connection {
 	}
 
 	public void onUpdate() {
-
+		this.typeManager.update();
 	}
 
-	public void send(ByteBuffer buffer) throws IOException {
+	public <T> void send(T t, ContainerKey<T> key) throws IOException {
+		ByteBuffer buffer = this.typeManager.getBuffer(t, key);
 		this.channel.send(buffer, this.addressSend);
 	}
 

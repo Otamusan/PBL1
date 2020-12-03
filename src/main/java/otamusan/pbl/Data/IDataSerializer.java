@@ -3,7 +3,7 @@ package otamusan.pbl.Data;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public interface IDataType<T> {
+public interface IDataSerializer<T> {
 	public void encode(T t, ByteBuffer buffer);
 
 	public T decode(ByteBuffer buffer);

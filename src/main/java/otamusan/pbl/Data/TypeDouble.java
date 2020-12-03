@@ -3,7 +3,7 @@ package otamusan.pbl.Data;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public class ByteDouble implements IDataType<Double> {
+public class TypeDouble implements IDataSerializer<Double> {
 	@Override
 	public void encode(Double n, ByteBuffer buffer) {
 		buffer.putDouble(n);

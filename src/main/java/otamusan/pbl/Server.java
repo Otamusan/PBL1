@@ -2,8 +2,6 @@ package otamusan.pbl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,6 +13,7 @@ public class Server {
 		this.delay = delay;
 		this.connection = new Connection(new InetSocketAddress("localhost", 10003),
 				new InetSocketAddress("localhost", 10004));
+		ContainerKeys.init(this.connection);
 	}
 
 	public static void main(String[] args) {
@@ -35,22 +34,12 @@ public class Server {
 				Server.this.onUpdate();
 			}
 		}, 1, this.delay);
-
-		while (true) {
-			Scanner scan = new Scanner(System.in);
-
-			String str = scan.next();
-			System.out.println(str);
-			try {
-				this.connection.send(StandardCharsets.UTF_8.encode(str));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
 	}
 
 	public void onUpdate() {
 		this.connection.onUpdate();
+		if (this.connection.isChange(ContainerKeys.cha)) {
+			System.out.println(this.connection.getData(ContainerKeys.cha));
+		}
 	}
 }

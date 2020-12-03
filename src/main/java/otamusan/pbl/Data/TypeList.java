@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class ByteList<T> implements IDataType<List<T>> {
+public class TypeList<T> implements IDataSerializer<List<T>> {
 
 	private int length;
-	private IDataType<T> type;
+	private IDataSerializer<T> type;
 
-	public ByteList(int length, IDataType<T> type) {
+	public TypeList(int length, IDataSerializer<T> type) {
 		this.length = length;
 		this.type = type;
 	}

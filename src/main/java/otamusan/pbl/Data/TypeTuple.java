@@ -3,12 +3,12 @@ package otamusan.pbl.Data;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-public class ByteTuple<L, R> implements IDataType<Tuple<L, R>> {
+public class TypeTuple<L, R> implements IDataSerializer<Tuple<L, R>> {
 
-	private IDataType<L> typel;
-	private IDataType<R> typer;
+	private IDataSerializer<L> typel;
+	private IDataSerializer<R> typer;
 
-	public ByteTuple(IDataType<L> typel, IDataType<R> typer) {
+	public TypeTuple(IDataSerializer<L> typel, IDataSerializer<R> typer) {
 		this.typel = typel;
 		this.typer = typer;
 	}
