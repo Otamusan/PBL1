@@ -2,6 +2,7 @@ package otamusan.pbl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -11,8 +12,15 @@ public class Server {
 
 	public Server(int delay) {
 		this.delay = delay;
-		this.connection = new Connection(new InetSocketAddress("localhost", 10003),
-				new InetSocketAddress("localhost", 10004));
+		this.delay = delay;
+		Scanner scan = new Scanner(System.in);
+
+		String address = scan.next();
+		String port = scan.next();
+		String address2 = scan.next();
+		String port2 = scan.next();
+		this.connection = new Connection(new InetSocketAddress(address, Integer.parseInt(port)),
+				new InetSocketAddress(address2, Integer.parseInt(port2)));
 		ContainerKeys.init(this.connection);
 	}
 
