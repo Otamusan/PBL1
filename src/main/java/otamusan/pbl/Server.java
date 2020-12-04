@@ -12,7 +12,6 @@ public class Server {
 
 	public Server(int delay) {
 		this.delay = delay;
-		this.delay = delay;
 		Scanner scan = new Scanner(System.in);
 
 		String address = scan.next();
@@ -42,6 +41,17 @@ public class Server {
 				Server.this.onUpdate();
 			}
 		}, 1, this.delay);
+
+		while (true) {
+			Scanner scan = new Scanner(System.in);
+
+			String str = scan.next();
+			try {
+				this.connection.send(str.charAt(0), ContainerKeys.cha);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void onUpdate() {

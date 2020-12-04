@@ -43,7 +43,6 @@ public class Connection {
 		this.typeManager.lock();
 		this.channel = DatagramChannel.open();
 		this.channel.bind(this.addressReceive);
-
 		this.thread = new Thread(new Read(this.channel, this.typeManager));
 		this.thread.start();
 	}
@@ -70,10 +69,6 @@ public class Connection {
 				this.data.receive(bb);
 			}
 		}
-	}
-
-	public static class Data {
-		public String string = "empty";
 	}
 
 	public void onUpdate() {

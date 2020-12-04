@@ -102,7 +102,6 @@ public class DataTypeManager {
 		if (dataType.getCapacity() > this.CAP)
 			throw new Error();
 		int i = this.count;
-		System.out.println(i);
 		this.buffers.add(new DataContainer(dataType));
 		ContainerKey<T> holderKey = new ContainerKey<T>(dataType);
 		this.id2keyMap.put(i, holderKey);

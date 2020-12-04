@@ -21,6 +21,7 @@ public class Client {
 		String port2 = scan.next();
 		this.connection = new Connection(new InetSocketAddress(address, Integer.parseInt(port)),
 				new InetSocketAddress(address2, Integer.parseInt(port2)));
+
 		ContainerKeys.init(this.connection);
 	}
 
@@ -45,9 +46,7 @@ public class Client {
 
 		while (true) {
 			Scanner scan = new Scanner(System.in);
-
 			String str = scan.next();
-			System.out.println(str);
 			try {
 				this.connection.send(str.charAt(0), ContainerKeys.cha);
 			} catch (IOException e) {
@@ -57,9 +56,10 @@ public class Client {
 	}
 
 	public void onUpdate() {
-		/*if (this.connection.isChange(ContainerKeys.cha)) {
+
+		if (this.connection.isChange(ContainerKeys.cha)) {
 			System.out.println(this.connection.getData(ContainerKeys.cha));
-		}*/
+		}
 		this.connection.onUpdate();
 	}
 }
