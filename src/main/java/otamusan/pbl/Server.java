@@ -12,14 +12,8 @@ public class Server {
 
 	public Server(int delay) {
 		this.delay = delay;
-		Scanner scan = new Scanner(System.in);
-
-		String address = scan.next();
-		String port = scan.next();
-		String address2 = scan.next();
-		String port2 = scan.next();
-		this.connection = new Connection(new InetSocketAddress(address, Integer.parseInt(port)),
-				new InetSocketAddress(address2, Integer.parseInt(port2)));
+		this.connection = new Connection(new InetSocketAddress("localhost", 445),
+				new InetSocketAddress("localhost", 444));
 		ContainerKeys.init(this.connection);
 	}
 

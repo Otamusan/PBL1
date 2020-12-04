@@ -42,7 +42,7 @@ public class Connection {
 	public void open() throws IOException {
 		this.typeManager.lock();
 		this.channel = DatagramChannel.open();
-		this.channel.bind(this.addressReceive);
+		this.channel.socket().bind(this.addressReceive);
 		this.thread = new Thread(new Read(this.channel, this.typeManager));
 		this.thread.start();
 	}
