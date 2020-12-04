@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 public class TestServer {
 	public static void main(String[] args) throws IOException {
 		DatagramChannel channel = DatagramChannel.open();
-		channel.bind(new InetSocketAddress(10003));
+		channel.bind(new InetSocketAddress("localhost", 10003));
 		ByteBuffer bb = ByteBuffer.allocate(1024);
 		channel.receive(bb);
 		bb.flip();

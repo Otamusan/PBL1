@@ -14,7 +14,7 @@ public class Client {
 	public Client(int delay) {
 		this.delay = delay;
 		this.connection = new Connection(new InetSocketAddress("localhost", 444),
-				new InetSocketAddress("localhost", 445));
+				new InetSocketAddress("0.0.0.0", 444));
 
 		ContainerKeys.init(this.connection);
 	}
