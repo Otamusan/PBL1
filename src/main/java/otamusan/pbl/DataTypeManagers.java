@@ -15,11 +15,12 @@ import otamusan.pbl.Data.TypeDouble;
 import otamusan.pbl.Data.TypeInt;
 
 public class DataTypeManagers {
-	private List<Tuple<List<DataContainer>, Player>> buffers;
+	private List<Tuple<List<Buffer<Object>>, Player>> buffers;
 	private int count;
 	private Map<Integer, ContainerKey<?>> id2keyMap;
 	private boolean isLocked;
 
+	private List<IDataSerializer<?>> serializers;
 	public final int CAP = 1024;
 
 	public static final IDataSerializer<Integer> TYPE_INT = new TypeInt();
@@ -27,9 +28,10 @@ public class DataTypeManagers {
 	public static final IDataSerializer<Character> TYPE_CHAR = new TypeChar();
 
 	public DataTypeManagers() {
-		this.buffers = new ArrayList<Tuple<List<DataContainer>, Player>>();
+		this.buffers = new ArrayList<Tuple<List<Buffer<Object>>, Player>>();
 		this.id2keyMap = new HashMap<Integer, DataTypeManagers.ContainerKey<?>>();
 		this.isLocked = false;
+		this.serializers = new ArrayList<IDataSerializer<?>>();
 	}
 
 	public void lock() {
@@ -44,21 +46,21 @@ public class DataTypeManagers {
 		return Optional.empty();
 	}
 
-	private Optional<List<DataContainer>> getContainers(Player player) {
-		for (Tuple<List<DataContainer>, Player> tuple : this.buffers) {
+	private Optional<List<Buffer<Object>>> getContainers(Player player) {
+		for (Tuple<List<Buffer<Object>>, Player> tuple : this.buffers) {
 			if (tuple.getRight().equals(player))
 				return Optional.of(tuple.getLeft());
 		}
 		return Optional.empty();
 	}
 
-	private Optional<DataContainer> getContainer(ContainerKey<?> key, Player player) {
+	private Optional<Buffer<Object>> getContainer(ContainerKey<?> key, Player player) {
 		return this.getContainers(player).flatMap(list -> this.getIDfromKey(key).map((id -> list.get(id))));
 	}
 
 	public void update() {
-		for (Tuple<List<DataContainer>, Player> containers : this.buffers) {
-			for (DataContainer dataHolder : containers.getLeft()) {
+		for (Tuple<List<Buffer<Object>>, Player> containers : this.buffers) {
+			for (Buffer<Object> dataHolder : containers.getLeft()) {
 				dataHolder.update();
 			}
 		}
@@ -78,6 +80,11 @@ public class DataTypeManagers {
 
 		newBuffer.flip();
 		return newBuffer;
+	}
+
+	public void addConnection(Player player) {
+		this.buffers.add(new Tuple<List<Buffer<Object>>, Player>(new ArrayList<Buffer<Object>>(this.serializers.size()),
+				player));
 	}
 
 	/*public Object getValue(ByteBuffer buffer) {
@@ -100,7 +107,7 @@ public class DataTypeManagers {
 	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
 		if (!this.getIDfromKey(key).isPresent())
 			return Optional.empty();
-		DataContainer holder = this.getContainers(player).get().get(this.getIDfromKey(key).get());
+		Buffer<Object> holder = this.getContainers(player).get().get(this.getIDfromKey(key).get());
 		IDataSerializer<T> type = key.getDataType();
 		return holder.get().flatMap(t -> type.cast(t));
 	}
@@ -112,7 +119,7 @@ public class DataTypeManagers {
 	}
 
 	public IDataSerializer<?> getDataTypeById(int i) {
-		return this.buffers.get(i).;
+		return this.serializers.get(i);
 	}
 
 	public <T> ContainerKey<T> register(IDataSerializer<T> dataType) {
@@ -121,11 +128,11 @@ public class DataTypeManagers {
 		if (dataType.getCapacity() > this.CAP)
 			throw new Error();
 		int i = this.count;
-		this.buffers.add(new DataContainer(dataType));
-		ContainerKey<T> holderKey = new ContainerKey<T>(dataType);
-		this.id2keyMap.put(i, holderKey);
+		this.serializers.add(dataType);
+		ContainerKey<T> containerKey = new ContainerKey<T>(dataType);
+		this.id2keyMap.put(i, containerKey);
 		this.count++;
-		return holderKey;
+		return containerKey;
 	}
 
 	public static class ContainerKey<T> {
@@ -141,17 +148,17 @@ public class DataTypeManagers {
 
 	}
 
-	public static class DataContainer extends Buffer<Object> {
+	/*public static class DataContainer extends Buffer<Object> {
 		private IDataSerializer<?> dataType;
-
+	
 		public DataContainer(IDataSerializer<?> datatype) {
 			this.dataType = datatype;
 		}
-
+	
 		public IDataSerializer<?> getDataType() {
 			return this.dataType;
 		}
-	}
+	}*/
 
 	@Override
 	public String toString() {

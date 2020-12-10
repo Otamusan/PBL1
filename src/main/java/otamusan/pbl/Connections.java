@@ -2,25 +2,37 @@ package otamusan.pbl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-import otamusan.pbl.DataTypeManager.ContainerKey;
+import otamusan.pbl.DataTypeManagers.ContainerKey;
 import otamusan.pbl.Data.IDataSerializer;
 
 public class Connections {
 	private DatagramChannel channel;
 	private InetSocketAddress addressSend;
 	private InetSocketAddress addressReceive;
-
-	private DataTypeManager typeManager;
+	private List<Player> players;
+	private DataTypeManagers typeManager;
 	private Thread thread;
 
 	public Connections(InetSocketAddress send, InetSocketAddress receive) {
 		this.addressSend = send;
 		this.addressReceive = receive;
-		this.typeManager = new DataTypeManager();
+		this.typeManager = new DataTypeManagers();
+		this.players = new ArrayList<Player>();
+	}
+
+	public boolean isExist(Player player) {
+		for (Player p : this.players) {
+			if (player.equals(p))
+				return true;
+		}
+		return false;
 	}
 
 	public Connections(InetSocketAddress address) {
@@ -31,27 +43,32 @@ public class Connections {
 		return this.typeManager.register(dataType);
 	}
 
-	public <T> Boolean isChange(ContainerKey<T> key) {
-		return this.typeManager.isChange(key);
+	public <T> Boolean isChange(ContainerKey<T> key, Player player) {
+		return this.typeManager.isChange(key, player);
 	}
 
-	public <T> Optional<T> getData(ContainerKey<T> key) {
-		return this.typeManager.getData(key);
+	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
+		return this.typeManager.getData(key, player);
+	}
+
+	public void addPlayer(Player player) {
+		this.players.add(player);
+		this.typeManager.addConnection(player);
 	}
 
 	public void open() throws IOException {
 		this.typeManager.lock();
 		this.channel = DatagramChannel.open();
 		this.channel.socket().bind(this.addressReceive);
-		this.thread = new Thread(new Read(this.channel, this.typeManager));
+		this.thread = new Thread(new Read(this.channel, this));
 		this.thread.start();
 	}
 
 	public static class Read implements Runnable {
 		private DatagramChannel channel;
-		private DataTypeManager data;
+		private Connections data;
 
-		public Read(DatagramChannel channel, DataTypeManager data) {
+		public Read(DatagramChannel channel, Connections data) {
 			this.channel = channel;
 			this.data = data;
 		}
@@ -59,16 +76,24 @@ public class Connections {
 		@Override
 		public void run() {
 			while (true) {
-				ByteBuffer bb = ByteBuffer.allocate(this.data.CAP);
+				ByteBuffer bb = ByteBuffer.allocate(this.data.typeManager.CAP);
+				SocketAddress address = null;
 				try {
-					this.channel.receive(bb);
+					address = this.channel.receive(bb);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 				bb.flip();
-				this.data.receive(bb);
+				if (address instanceof InetSocketAddress) {
+					//this.data.receive(bb,new Player((InetSocketAddress) address));
+					this.data.receive(bb, new Player((InetSocketAddress) address));
+				}
 			}
 		}
+	}
+
+	public void receive(ByteBuffer raw, Player player) {
+
 	}
 
 	public void onUpdate() {
