@@ -16,7 +16,7 @@ public class Connections {
 	private DatagramChannel channel;
 	private InetSocketAddress addressReceive;
 	private List<Player> players;
-	private DataTypeManagers typeManager;
+	protected DataTypeManagers typeManager;
 	private Thread thread;
 
 	public Connections(InetSocketAddress receive) {

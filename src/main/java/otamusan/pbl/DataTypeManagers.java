@@ -55,7 +55,13 @@ public class DataTypeManagers {
 	}
 
 	private Optional<Buffer<Object>> getContainer(ContainerKey<?> key, Player player) {
-		return this.getContainers(player).flatMap(list -> this.getIDfromKey(key).map((id -> list.get(id))));
+		if (!this.getContainers(player).isPresent())
+			return Optional.empty();
+		if (!this.getIDfromKey(key).isPresent())
+			return Optional.empty();
+		Buffer<Object> opt = this.getContainers(player).get().get(this.getIDfromKey(key).get());
+
+		return Optional.of(opt);
 	}
 
 	public void update() {
@@ -108,9 +114,9 @@ public class DataTypeManagers {
 	}
 
 	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
-		if (!this.getIDfromKey(key).isPresent())
+		if (!this.getContainer(key, player).isPresent())
 			return Optional.empty();
-		Buffer<Object> holder = this.getContainers(player).get().get(this.getIDfromKey(key).get());
+		Buffer<Object> holder = this.getContainer(key, player).get();
 		IDataSerializer<T> type = key.getDataType();
 		return holder.get().flatMap(t -> type.cast(t));
 	}
@@ -131,7 +137,7 @@ public class DataTypeManagers {
 		if (dataType.getCapacity() > this.CAP)
 			throw new Error();
 		int i = this.count;
-		this.serializers.add(dataType);
+		System.out.println(this.serializers);
 		ContainerKey<T> containerKey = new ContainerKey<T>(dataType);
 		this.id2keyMap.put(i, containerKey);
 		this.count++;
