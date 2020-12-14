@@ -22,4 +22,9 @@ public class Player {
 		return this.address.getPort() == player.getAddress().getPort()
 				&& this.address.getHostString() == player.getAddress().getHostString();
 	}
+
+	@Override
+	public String toString() {
+		return "[" + this.address.getHostString() + "," + this.address.getPort() + "]";
+	}
 }

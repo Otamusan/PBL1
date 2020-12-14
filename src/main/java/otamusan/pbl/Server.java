@@ -8,11 +8,11 @@ import java.util.TimerTask;
 
 public class Server {
 	private int delay;
-	private Connection connection;
+	private Connections connection;
 
 	public Server(int delay) {
 		this.delay = delay;
-		this.connection = new Connection(new InetSocketAddress("localhost", 444),
+		this.connection = new Connections(new InetSocketAddress("localhost", 444),
 				new InetSocketAddress("0.0.0.0", 445));
 		ContainerKeys.init(this.connection);
 	}
@@ -49,9 +49,10 @@ public class Server {
 	}
 
 	public void onUpdate() {
-		this.connection.onUpdate();
-		if (this.connection.isChange(ContainerKeys.cha)) {
-			System.out.println(this.connection.getData(ContainerKeys.cha));
+		for (Player player : this.connection.getPlayers()) {
+			if (this.connection.isChange(ContainerKeys.cha, player)) {
+				System.out.println(this.connection.getData(ContainerKeys.cha, player));
+			}
 		}
 	}
 }

@@ -14,17 +14,19 @@ import otamusan.pbl.Data.IDataSerializer;
 
 public class Connections {
 	private DatagramChannel channel;
-	private InetSocketAddress addressSend;
 	private InetSocketAddress addressReceive;
 	private List<Player> players;
 	private DataTypeManagers typeManager;
 	private Thread thread;
 
-	public Connections(InetSocketAddress send, InetSocketAddress receive) {
-		this.addressSend = send;
+	public Connections(InetSocketAddress receive) {
 		this.addressReceive = receive;
 		this.typeManager = new DataTypeManagers();
 		this.players = new ArrayList<Player>();
+	}
+
+	public List<Player> getPlayers() {
+		return this.players;
 	}
 
 	public boolean isExist(Player player) {
@@ -33,10 +35,6 @@ public class Connections {
 				return true;
 		}
 		return false;
-	}
-
-	public Connections(InetSocketAddress address) {
-		this(address, address);
 	}
 
 	public <T> ContainerKey<T> register(IDataSerializer<T> dataType) {
@@ -85,7 +83,6 @@ public class Connections {
 				}
 				bb.flip();
 				if (address instanceof InetSocketAddress) {
-					//this.data.receive(bb,new Player((InetSocketAddress) address));
 					this.data.receive(bb, new Player((InetSocketAddress) address));
 				}
 			}
@@ -93,7 +90,11 @@ public class Connections {
 	}
 
 	public void receive(ByteBuffer raw, Player player) {
-
+		if (!this.isExist(player)) {
+			System.out.println("connected by" + player.toString());
+			this.addPlayer(player);
+		}
+		this.typeManager.receive(raw, player);
 	}
 
 	public void onUpdate() {
@@ -102,7 +103,9 @@ public class Connections {
 
 	public <T> void send(T t, ContainerKey<T> key) throws IOException {
 		ByteBuffer buffer = this.typeManager.getBuffer(t, key);
-		this.channel.send(buffer, this.addressSend);
+		for (Player player : this.players) {
+			this.channel.send(buffer, player.getAddress());
+		}
 	}
 
 	public void close() throws IOException {

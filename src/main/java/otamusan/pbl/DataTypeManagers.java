@@ -83,8 +83,11 @@ public class DataTypeManagers {
 	}
 
 	public void addConnection(Player player) {
-		this.buffers.add(new Tuple<List<Buffer<Object>>, Player>(new ArrayList<Buffer<Object>>(this.serializers.size()),
-				player));
+		ArrayList<Buffer<Object>> containers = new ArrayList<Buffer<Object>>(this.serializers.size());
+		for (int i = 0; i < this.serializers.size(); i++) {
+			containers.add(new Buffer<Object>());
+		}
+		this.buffers.add(new Tuple<List<Buffer<Object>>, Player>(containers, player));
 	}
 
 	/*public Object getValue(ByteBuffer buffer) {
