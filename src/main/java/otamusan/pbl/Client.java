@@ -9,12 +9,12 @@ import java.util.TimerTask;
 public class Client {
 	private int delay;
 
-	private Connections connection;
+	private Connection connection;
 
 	public Client(int delay) {
 		this.delay = delay;
 		this.connection = new Connection(new InetSocketAddress("localhost", 445),
-				new InetSocketAddress("0.0.0.0", 444));
+				new InetSocketAddress("localhost", 444));
 
 		ContainerKeys.init(this.connection);
 	}
@@ -46,14 +46,13 @@ public class Client {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			System.out.println(this.connection.getPlayers());
 		}
 	}
 
 	public void onUpdate() {
-		for (Player player : this.connection.getPlayers()) {
-			//if (this.connection.isChange(ContainerKeys.cha, player)) {
-			System.out.println(this.connection.getData(ContainerKeys.cha, player));
-			//}
+		if (this.connection.isChange(ContainerKeys.cha)) {
+			System.out.println(this.connection.getData(ContainerKeys.cha));
 		}
 		this.connection.onUpdate();
 	}

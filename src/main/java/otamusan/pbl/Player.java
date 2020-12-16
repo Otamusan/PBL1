@@ -16,11 +16,10 @@ public class Player {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof Player))
-			return false;
-		Player player = (Player) obj;
-		return this.address.getPort() == player.getAddress().getPort()
-				&& this.address.getHostString() == player.getAddress().getHostString();
+		if (obj instanceof Player) {
+			return this.address.equals(((Player) obj).getAddress());
+		}
+		return false;
 	}
 
 	@Override

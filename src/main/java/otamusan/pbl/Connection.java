@@ -23,8 +23,7 @@ public class Connection extends Connections {
 		return super.isChange(key, this.player);
 	}
 
-	@Override
-	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
+	public <T> Optional<T> getData(ContainerKey<T> key) {
 		return super.getData(key, this.player);
 	}
 

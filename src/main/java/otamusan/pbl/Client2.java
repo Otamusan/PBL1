@@ -6,57 +6,55 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class Server {
+public class Client2 {
 	private int delay;
-	private Connections connection;
 
-	public Server(int delay) {
+	private Connection connection;
+
+	public Client2(int delay) {
 		this.delay = delay;
-		this.connection = new Connections(new InetSocketAddress(445));
+		this.connection = new Connection(new InetSocketAddress("localhost", 445),
+				new InetSocketAddress("localhost", 443));
+
 		ContainerKeys.init(this.connection);
 	}
 
 	public static void main(String[] args) {
-		Server server = new Server(App.delay);
-		server.run();
+		Client2 client = new Client2(App.delay);
+		client.run();
 	}
 
 	public void run() {
 		try {
 			this.connection.open();
 		} catch (IOException e) {
-			e.printStackTrace();
+
 		}
 		Timer main = new Timer();
 		main.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				Server.this.onUpdate();
+				Client2.this.onUpdate();
 			}
 		}, 1, this.delay);
 
 		while (true) {
 			Scanner scan = new Scanner(System.in);
-
 			String str = scan.next();
 			try {
 				this.connection.send(str.charAt(0), ContainerKeys.cha);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
 			System.out.println(this.connection.getPlayers());
 
 		}
 	}
 
 	public void onUpdate() {
-		for (Player player : this.connection.getPlayers()) {
-			if (this.connection.isChange(ContainerKeys.cha, player)) {
-				System.out.println(this.connection.getData(ContainerKeys.cha, player));
-			}
+		if (this.connection.isChange(ContainerKeys.cha)) {
+			System.out.println(this.connection.getData(ContainerKeys.cha));
 		}
-
 		this.connection.onUpdate();
 	}
 }

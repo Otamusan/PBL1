@@ -104,7 +104,7 @@ public class Connections {
 	public <T> void send(T t, ContainerKey<T> key) throws IOException {
 		ByteBuffer buffer = this.typeManager.getBuffer(t, key);
 		for (Player player : this.players) {
-			this.channel.send(buffer, player.getAddress());
+			this.channel.send(buffer.asReadOnlyBuffer(), player.getAddress());
 		}
 	}
 

@@ -104,10 +104,10 @@ public class DataTypeManagers {
 	}*/
 
 	public void receive(ByteBuffer buffer, Player player) {
+		//buffer.limit(this.CAP);
 		int id = buffer.getInt();
 		IDataSerializer<?> type = this.getDataTypeById(id);
 		Object value = type.decode(buffer);
-
 		this.getContainer(this.id2keyMap.get(id), player).ifPresent(container -> {
 			container.put(value);
 		});
@@ -137,7 +137,7 @@ public class DataTypeManagers {
 		if (dataType.getCapacity() > this.CAP)
 			throw new Error();
 		int i = this.count;
-		System.out.println(this.serializers);
+		this.serializers.add(dataType);
 		ContainerKey<T> containerKey = new ContainerKey<T>(dataType);
 		this.id2keyMap.put(i, containerKey);
 		this.count++;
