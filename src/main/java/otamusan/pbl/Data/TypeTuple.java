@@ -3,6 +3,8 @@ package otamusan.pbl.Data;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
+import otamusan.pbl.Util.Tuple;
+
 public class TypeTuple<L, R> implements IDataSerializer<Tuple<L, R>> {
 
 	private IDataSerializer<L> typel;

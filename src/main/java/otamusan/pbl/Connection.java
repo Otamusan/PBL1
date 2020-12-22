@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Optional;
-
-import otamusan.pbl.DataTypeManagers.ContainerKey;
+import java.util.function.Consumer;
 
 public class Connection extends Connections {
 
@@ -13,8 +12,8 @@ public class Connection extends Connections {
 
 	private Player player;
 
-	public Connection(InetSocketAddress send, InetSocketAddress receive) {
-		super(receive);
+	public Connection(InetSocketAddress send, InetSocketAddress receive, Consumer<Connections> containerRegister) {
+		super(receive, containerRegister);
 		this.sendAddress = send;
 		this.player = new Player(this.sendAddress);
 	}

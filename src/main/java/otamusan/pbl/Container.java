@@ -2,18 +2,18 @@ package otamusan.pbl;
 
 import java.util.Optional;
 
-public class Buffer<T> {
-	private T buffer;
+public class Container<T> {
+	private T container;
 	private T current;
 	private T previous;
 
 	public void update() {
 		this.previous = this.current;
-		this.current = this.buffer;
+		this.current = this.container;
 	}
 
 	public void put(T t) {
-		this.buffer = t;
+		this.container = t;
 	}
 
 	public boolean isChange() {
@@ -34,6 +34,6 @@ public class Buffer<T> {
 
 	@Override
 	public String toString() {
-		return "[current:" + this.current + ",buffer:" + this.buffer + "]";
+		return "[current:" + this.current + ",container:" + this.container + "]";
 	}
 }

@@ -1,4 +1,4 @@
-package otamusan.pbl.Data;
+package otamusan.pbl.Util;
 
 public class Tuple<L, R> {
 	private L left;

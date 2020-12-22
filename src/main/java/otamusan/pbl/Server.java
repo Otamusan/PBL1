@@ -12,8 +12,9 @@ public class Server {
 
 	public Server(int delay) {
 		this.delay = delay;
-		this.connection = new Connections(new InetSocketAddress(445));
-		ContainerKeys.init(this.connection);
+		this.connection = new Connections(new InetSocketAddress(445), connection -> {
+			ContainerKeys.init(connection);
+		});
 	}
 
 	public static void main(String[] args) {
@@ -44,9 +45,6 @@ public class Server {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
-			System.out.println(this.connection.getPlayers());
-
 		}
 	}
 

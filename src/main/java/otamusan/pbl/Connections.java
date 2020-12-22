@@ -6,56 +6,92 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-import otamusan.pbl.DataTypeManagers.ContainerKey;
 import otamusan.pbl.Data.IDataSerializer;
 
 public class Connections {
 	private DatagramChannel channel;
 	private InetSocketAddress addressReceive;
-	private List<Player> players;
-	protected DataTypeManagers typeManager;
+	private Map<Integer, Player> players;
+	protected DataManagers dataManager;
+	protected TypeManager typeManager;
 	private Thread thread;
+	public Map<Integer, ContainerKey<?>> keyMap;
 
-	public Connections(InetSocketAddress receive) {
+	public Connections(InetSocketAddress receive, Consumer<Connections> containerRegister) {
 		this.addressReceive = receive;
-		this.typeManager = new DataTypeManagers();
-		this.players = new ArrayList<Player>();
+		this.typeManager = new TypeManager();
+		this.players = new HashMap<Integer, Player>();
+		this.keyMap = new HashMap<>();
+
+		containerRegister.accept(this);
+		this.typeManager.lock();
+		this.dataManager = new DataManagers(this.typeManager.getSerializerSize());
+
+	}
+
+	public Optional<Integer> getPlayerID(Player player) {
+		for (Integer id : this.players.keySet()) {
+			if (this.players.get(id).equals(player))
+				return Optional.of(id);
+		}
+		return Optional.empty();
 	}
 
 	public List<Player> getPlayers() {
-		return this.players;
+		return new ArrayList<Player>(this.players.values());
 	}
 
 	public boolean isExist(Player player) {
-		for (Player p : this.players) {
+		for (Player p : this.getPlayers()) {
 			if (player.equals(p))
 				return true;
 		}
 		return false;
 	}
 
-	public <T> ContainerKey<T> register(IDataSerializer<T> dataType) {
-		return this.typeManager.register(dataType);
+	public <T> ContainerKey<T> register(IDataSerializer<T> serializer) {
+		int containerid = this.typeManager.register(serializer);
+		ContainerKey<T> key = new ContainerKey<>(serializer);
+		this.keyMap.put(containerid, key);
+		return key;
+	}
+
+	public Optional<Integer> getContainerID(ContainerKey<?> key) {
+		for (Integer id : this.keyMap.keySet()) {
+			if (this.keyMap.get(id) == key)
+				return Optional.of(id);
+		}
+		return Optional.empty();
 	}
 
 	public <T> Boolean isChange(ContainerKey<T> key, Player player) {
-		return this.typeManager.isChange(key, player);
+		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(player)
+				.map(playerid -> this.dataManager.isChange(containerid, playerid))).orElse(false);
 	}
 
 	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
-		return this.typeManager.getData(key, player);
+		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(player)
+				.flatMap(playerid -> this.dataManager.getData(containerid, playerid)
+						.flatMap(t -> key.serializer.cast(t))));
 	}
 
 	public void addPlayer(Player player) {
-		this.players.add(player);
-		this.typeManager.addConnection(player);
+		int c = 0;
+		for (int i = 0; i < this.players.size(); i++) {
+			if (!this.players.containsKey(i))
+				c = i;
+		}
+		this.players.put(c, player);
+		this.dataManager.addContainers(this.getPlayerID(player).orElseThrow(() -> new Error("error")));
 	}
 
 	public void open() throws IOException {
-		this.typeManager.lock();
 		this.channel = DatagramChannel.open();
 		this.channel.socket().bind(this.addressReceive);
 		this.thread = new Thread(new Read(this.channel, this));
@@ -94,21 +130,39 @@ public class Connections {
 			System.out.println("connected by" + player.toString());
 			this.addPlayer(player);
 		}
-		this.typeManager.receive(raw, player);
+		int containerid = this.typeManager.parseContainerId(raw);
+		IDataSerializer<?> serializer = this.typeManager.getSerializer(containerid);
+		Object value = serializer.decode(raw);
+		this.getPlayerID(player).ifPresent(id -> {
+			this.dataManager.receive(value, containerid, id);
+		});
 	}
 
 	public void onUpdate() {
-		this.typeManager.update();
+		this.dataManager.update();
 	}
 
 	public <T> void send(T t, ContainerKey<T> key) throws IOException {
-		ByteBuffer buffer = this.typeManager.getBuffer(t, key);
-		for (Player player : this.players) {
-			this.channel.send(buffer.asReadOnlyBuffer(), player.getAddress());
+		ByteBuffer bytes = this.typeManager.getBuffer(t, key.serializer);
+		for (Player player : this.getPlayers()) {
+			this.channel.send(bytes.asReadOnlyBuffer(), player.getAddress());
 		}
 	}
 
 	public void close() throws IOException {
 		this.channel.close();
+	}
+
+	public static class ContainerKey<T> {
+		private IDataSerializer<T> serializer;
+
+		public ContainerKey(IDataSerializer<T> type) {
+			this.serializer = type;
+		}
+
+		public IDataSerializer<T> getDataType() {
+			return this.serializer;
+		}
+
 	}
 }
