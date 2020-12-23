@@ -2,31 +2,35 @@ package otamusan.pbl;
 
 import java.util.Optional;
 
-public class Container<T> {
-	private T container;
-	private T current;
-	private T previous;
+public class Container {
+	private Object buffer;
+	private Object current;
+	private Object previous;
 
 	public void update() {
 		this.previous = this.current;
-		this.current = this.container;
+		this.current = this.buffer;
 	}
 
-	public void put(T t) {
-		this.container = t;
+	public void put(Object t) {
+		this.buffer = t;
+	}
+
+	public void set(Object t) {
+		this.current = t;
 	}
 
 	public boolean isChange() {
 		return this.current != this.previous;
 	}
 
-	public T get(T defa) {
+	public Object get(Object defa) {
 		if (this.current == null)
 			return defa;
 		return this.current;
 	}
 
-	public Optional<T> get() {
+	public Optional<Object> get() {
 		if (this.current == null)
 			return Optional.empty();
 		return Optional.of(this.current);
@@ -34,6 +38,6 @@ public class Container<T> {
 
 	@Override
 	public String toString() {
-		return "[current:" + this.current + ",container:" + this.container + "]";
+		return "[current:" + this.current + ",container:" + this.buffer + "]";
 	}
 }

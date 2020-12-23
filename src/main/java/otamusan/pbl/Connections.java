@@ -23,14 +23,13 @@ public class Connections {
 	private Thread thread;
 	public Map<Integer, ContainerKey<?>> keyMap;
 
-	public Connections(InetSocketAddress receive, Consumer<Connections> containerRegister) {
+	public Connections(InetSocketAddress receive, Consumer<RegisterKey> containerRegister) {
 		this.addressReceive = receive;
 		this.typeManager = new TypeManager();
 		this.players = new HashMap<Integer, Player>();
 		this.keyMap = new HashMap<>();
 
-		containerRegister.accept(this);
-		this.typeManager.lock();
+		containerRegister.accept(new RegisterKey(this));
 		this.dataManager = new DataManagers(this.typeManager.getSerializerSize());
 
 	}
@@ -55,11 +54,19 @@ public class Connections {
 		return false;
 	}
 
-	public <T> ContainerKey<T> register(IDataSerializer<T> serializer) {
-		int containerid = this.typeManager.register(serializer);
-		ContainerKey<T> key = new ContainerKey<>(serializer);
-		this.keyMap.put(containerid, key);
-		return key;
+	public static class RegisterKey {
+		private Connections connections;
+
+		public RegisterKey(Connections connections) {
+			this.connections = connections;
+		}
+
+		public <T> ContainerKey<T> register(IDataSerializer<T> serializer) {
+			int containerid = this.connections.typeManager.register(serializer);
+			ContainerKey<T> key = new ContainerKey<>(serializer);
+			this.connections.keyMap.put(containerid, key);
+			return key;
+		}
 	}
 
 	public Optional<Integer> getContainerID(ContainerKey<?> key) {
@@ -144,9 +151,19 @@ public class Connections {
 
 	public <T> void send(T t, ContainerKey<T> key) throws IOException {
 		ByteBuffer bytes = this.typeManager.getBuffer(t, key.serializer);
+		this.dataManager.setSendData(t, this.getContainerID(key).orElseThrow(() -> new Error()));
 		for (Player player : this.getPlayers()) {
 			this.channel.send(bytes.asReadOnlyBuffer(), player.getAddress());
 		}
+	}
+
+	public <T> void share(T t, ContainerKey<T> key) throws IOException {
+		ByteBuffer bytes = this.typeManager.getBuffer(t, key.serializer);
+		for (Player player : this.getPlayers()) {
+			this.channel.send(bytes.asReadOnlyBuffer(), player.getAddress());
+		}
+
+		this.dataManager.setSendData(t, this.getContainerID(key).orElseThrow(() -> new Error()));
 	}
 
 	public void close() throws IOException {

@@ -12,7 +12,7 @@ public class Connection extends Connections {
 
 	private Player player;
 
-	public Connection(InetSocketAddress send, InetSocketAddress receive, Consumer<Connections> containerRegister) {
+	public Connection(InetSocketAddress send, InetSocketAddress receive, Consumer<RegisterKey> containerRegister) {
 		super(receive, containerRegister);
 		this.sendAddress = send;
 		this.player = new Player(this.sendAddress);

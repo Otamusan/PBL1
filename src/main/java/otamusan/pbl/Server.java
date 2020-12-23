@@ -12,8 +12,8 @@ public class Server {
 
 	public Server(int delay) {
 		this.delay = delay;
-		this.connection = new Connections(new InetSocketAddress(445), connection -> {
-			ContainerKeys.init(connection);
+		this.connection = new Connections(new InetSocketAddress(445), key -> {
+			ContainerKeys.init(key);
 		});
 	}
 
@@ -41,7 +41,7 @@ public class Server {
 
 			String str = scan.next();
 			try {
-				this.connection.send(str.charAt(0), ContainerKeys.cha);
+				this.connection.share(str.charAt(0), ContainerKeys.cha);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -54,7 +54,6 @@ public class Server {
 				System.out.println(this.connection.getData(ContainerKeys.cha, player));
 			}
 		}
-
 		this.connection.onUpdate();
 	}
 }

@@ -12,7 +12,6 @@ import otamusan.pbl.Data.TypeInt;
 
 public class TypeManager {
 	private int count;
-	private boolean isLocked;
 	private List<IDataSerializer<?>> serializers;
 	public final int CAP = 1024;
 
@@ -21,16 +20,11 @@ public class TypeManager {
 	public static final IDataSerializer<Character> TYPE_CHAR = new TypeChar();
 
 	public TypeManager() {
-		this.isLocked = false;
 		this.serializers = new ArrayList<IDataSerializer<?>>();
 	}
 
 	public int getSerializerSize() {
 		return this.serializers.size();
-	}
-
-	public void lock() {
-		this.isLocked = true;
 	}
 
 	public <T> ByteBuffer getBuffer(T t, IDataSerializer<T> serializer) {
@@ -58,8 +52,6 @@ public class TypeManager {
 	}
 
 	public int register(IDataSerializer<?> serializer) {
-		if (this.isLocked)
-			throw new Error();
 		if (serializer.getCapacity() > this.CAP)
 			throw new Error();
 		int i = this.count;

@@ -7,42 +7,47 @@ import java.util.Map;
 import java.util.Optional;
 
 public class DataManagers {
-	public Map<Integer, List<Container<Object>>> containers;
+	private Map<Integer, List<Container>> receives;
+	private List<Object> sends;
 
 	private int containerSize;
 
 	public DataManagers(int containerSize) {
 		this.containerSize = containerSize;
-		this.containers = new HashMap<Integer, List<Container<Object>>>();
+		this.receives = new HashMap<Integer, List<Container>>();
+		this.sends = new ArrayList<Object>(containerSize);
+		for (int i = 0; i < this.containerSize; i++) {
+			this.sends.add(new Object());
+		}
 	}
 
-	private Optional<List<Container<Object>>> getContainers(int playerid) {
-		if (this.containers.containsKey(playerid))
-			return Optional.of(this.containers.get(playerid));
+	private Optional<List<Container>> getContainers(int playerid) {
+		if (this.receives.containsKey(playerid))
+			return Optional.of(this.receives.get(playerid));
 		return Optional.empty();
 	}
 
-	private Optional<Container<Object>> getContainer(int containerid, int playerid) {
+	private Optional<Container> getContainer(int containerid, int playerid) {
 		if (!this.getContainers(playerid).isPresent())
 			return Optional.empty();
-		Container<Object> opt = this.getContainers(playerid).get().get(containerid);
-		return Optional.of(opt);
+		Container container = this.getContainers(playerid).get().get(containerid);
+		return Optional.of(container);
 	}
 
 	public void update() {
-		for (List<Container<Object>> containers : this.containers.values()) {
-			for (Container<Object> container : containers) {
+		for (List<Container> containers : this.receives.values()) {
+			for (Container container : containers) {
 				container.update();
 			}
 		}
 	}
 
 	public void addContainers(int playerid) {
-		ArrayList<Container<Object>> containers = new ArrayList<Container<Object>>(this.containerSize);
+		ArrayList<Container> containers = new ArrayList<Container>(this.containerSize);
 		for (int i = 0; i < this.containerSize; i++) {
-			containers.add(new Container<Object>());
+			containers.add(new Container());
 		}
-		this.containers.put(playerid, containers);
+		this.receives.put(playerid, containers);
 	}
 
 	public void receive(Object value, int containerid, int playerid) {
@@ -51,8 +56,16 @@ public class DataManagers {
 		});
 	}
 
+	public void setSendData(Object value, int containerid) {
+		this.sends.set(containerid, value);
+	}
+
+	public boolean shouldSend(Object value, int containerid) {
+		return this.sends.get(containerid).equals(value);
+	}
+
 	public Optional<Object> getData(int containerid, int playerid) {
-		return this.getContainer(containerid, playerid).flatMap(container -> container.get());
+		return this.getContainer(containerid, playerid).flatMap(Container::get);
 	}
 
 	public Boolean isChange(int containerid, int playerid) {
@@ -63,6 +76,6 @@ public class DataManagers {
 
 	@Override
 	public String toString() {
-		return this.containers.toString();
+		return this.receives.toString();
 	}
 }

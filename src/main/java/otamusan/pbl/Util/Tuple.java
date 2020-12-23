@@ -21,4 +21,12 @@ public class Tuple<L, R> {
 	public String toString() {
 		return "[" + this.getLeft().toString() + "," + this.getRight().toString() + "]";
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Tuple))
+			return false;
+		Tuple<?, ?> tuple = (Tuple<?, ?>) obj;
+		return tuple.getLeft().equals(this.left) && tuple.getRight().equals(this.right);
+	}
 }

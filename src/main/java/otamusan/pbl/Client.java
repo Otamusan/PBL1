@@ -9,7 +9,7 @@ import java.util.TimerTask;
 public class Client {
 	private int delay;
 
-	private Connection connection;
+	protected Connection connection;
 
 	public Client(int delay) {
 		this.delay = delay;
@@ -43,7 +43,7 @@ public class Client {
 			Scanner scan = new Scanner(System.in);
 			String str = scan.next();
 			try {
-				this.connection.send(str.charAt(0), ContainerKeys.cha);
+				this.connection.share(str.charAt(0), ContainerKeys.cha);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
