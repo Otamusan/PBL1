@@ -10,6 +10,11 @@ import otamusan.pbl.Data.TypeChar;
 import otamusan.pbl.Data.TypeDouble;
 import otamusan.pbl.Data.TypeInt;
 
+/**
+ * 送受信する値の型を管理するクラス
+ * @author otamusan
+ *
+ */
 public class TypeManager {
 	private int count;
 	private List<IDataSerializer<?>> serializers;

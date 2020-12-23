@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 送受信する値を管理するクラス
+ * @author otamusan
+ *
+ */
 public class DataManagers {
 	private Map<Integer, List<Container>> receives;
 	private List<Object> sends;

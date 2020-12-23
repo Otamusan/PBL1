@@ -1,5 +1,12 @@
 package otamusan.pbl.Util;
 
+/**
+ * 任意の値の二つ組
+ * @author otamusan
+ *
+ * @param <L> 左側の値の型
+ * @param <R> 右側の値の型
+ */
 public class Tuple<L, R> {
 	private L left;
 	private R right;

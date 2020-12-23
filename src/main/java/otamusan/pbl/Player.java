@@ -2,8 +2,12 @@ package otamusan.pbl;
 
 import java.net.InetSocketAddress;
 
+/**
+ * 通信を行う相手を識別するためのクラス
+ * @author otamusan
+ *
+ */
 public class Player {
-
 	private InetSocketAddress address;
 
 	public Player(InetSocketAddress address) {

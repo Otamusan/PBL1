@@ -14,6 +14,11 @@ import java.util.function.Consumer;
 
 import otamusan.pbl.Data.IDataSerializer;
 
+/**
+ * 通信を管理するクラス。
+ * @author otamusan
+ *
+ */
 public class Connections {
 	private DatagramChannel channel;
 	private InetSocketAddress addressReceive;
@@ -21,20 +26,23 @@ public class Connections {
 	protected DataManagers dataManager;
 	protected TypeManager typeManager;
 	private Thread thread;
-	public Map<Integer, ContainerKey<?>> keyMap;
+	private Map<Integer, ContainerKey<?>> keyMap;
 
+	/**
+	 *
+	 * @param receive データを受信するアドレス
+	 * @param containerRegister {@link Container}を登録する処理を行うメソッド
+	 */
 	public Connections(InetSocketAddress receive, Consumer<RegisterKey> containerRegister) {
 		this.addressReceive = receive;
 		this.typeManager = new TypeManager();
 		this.players = new HashMap<Integer, Player>();
 		this.keyMap = new HashMap<>();
-
 		containerRegister.accept(new RegisterKey(this));
 		this.dataManager = new DataManagers(this.typeManager.getSerializerSize());
-
 	}
 
-	public Optional<Integer> getPlayerID(Player player) {
+	private Optional<Integer> getPlayerID(Player player) {
 		for (Integer id : this.players.keySet()) {
 			if (this.players.get(id).equals(player))
 				return Optional.of(id);
@@ -46,6 +54,11 @@ public class Connections {
 		return new ArrayList<Player>(this.players.values());
 	}
 
+	/**
+	 *
+	 * @param player
+	 * @return 与えられたプレイヤーが存在するか
+	 */
 	public boolean isExist(Player player) {
 		for (Player p : this.getPlayers()) {
 			if (player.equals(p))
@@ -54,6 +67,11 @@ public class Connections {
 		return false;
 	}
 
+	/**
+	 * {@link Container}を登録するためのアクセサ
+	 * @author otamusan
+	 *
+	 */
 	public static class RegisterKey {
 		private Connections connections;
 
@@ -61,6 +79,12 @@ public class Connections {
 			this.connections = connections;
 		}
 
+		/**
+		 * {@link Container}を登録するメソッド。同じ{@link IDataSerializer}を渡しても別のコンテナとして管理される
+		 * @param <T> {@link Container}に格納される値のデータ型
+		 * @param serializer 格納される値を変換するシリアライザ
+		 * @return 格納された値を取得する時などに必要なアクセサ
+		 */
 		public <T> ContainerKey<T> register(IDataSerializer<T> serializer) {
 			int containerid = this.connections.typeManager.register(serializer);
 			ContainerKey<T> key = new ContainerKey<>(serializer);
@@ -69,7 +93,7 @@ public class Connections {
 		}
 	}
 
-	public Optional<Integer> getContainerID(ContainerKey<?> key) {
+	private Optional<Integer> getContainerID(ContainerKey<?> key) {
 		for (Integer id : this.keyMap.keySet()) {
 			if (this.keyMap.get(id) == key)
 				return Optional.of(id);
@@ -77,11 +101,25 @@ public class Connections {
 		return Optional.empty();
 	}
 
+	/**
+	 * 指定した{@link Container}の値が一つ前のフレームから現在にかけて変化しているかを返すメソッド
+	 * @param <T> 格納される値のデータ型
+	 * @param key 調べたいコンテナへのアクセサ
+	 * @param player 通信を行っているプレイヤー
+	 * @return
+	 */
 	public <T> Boolean isChange(ContainerKey<T> key, Player player) {
 		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(player)
 				.map(playerid -> this.dataManager.isChange(containerid, playerid))).orElse(false);
 	}
 
+	/**
+	 * 指定した{@link Container}の値を取得するメソッド
+	 * @param <T> 格納される値のデータ型
+	 * @param key 値を取得したいコンテナへのアクセサ
+	 * @param player 通信を行っているプレイヤー
+	 * @return 格納されていた値
+	 */
 	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
 		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(player)
 				.flatMap(playerid -> this.dataManager.getData(containerid, playerid)
@@ -98,6 +136,10 @@ public class Connections {
 		this.dataManager.addContainers(this.getPlayerID(player).orElseThrow(() -> new Error("error")));
 	}
 
+	/**
+	 * 通信を開始するメソッド
+	 * @throws IOException
+	 */
 	public void open() throws IOException {
 		this.channel = DatagramChannel.open();
 		this.channel.socket().bind(this.addressReceive);
@@ -105,7 +147,12 @@ public class Connections {
 		this.thread.start();
 	}
 
-	public static class Read implements Runnable {
+	/**
+	 * データを受信するためのスレッド
+	 * @author otamusan
+	 *
+	 */
+	private static class Read implements Runnable {
 		private DatagramChannel channel;
 		private Connections data;
 
@@ -132,7 +179,7 @@ public class Connections {
 		}
 	}
 
-	public void receive(ByteBuffer raw, Player player) {
+	protected void receive(ByteBuffer raw, Player player) {
 		if (!this.isExist(player)) {
 			System.out.println("connected by" + player.toString());
 			this.addPlayer(player);
@@ -145,10 +192,20 @@ public class Connections {
 		});
 	}
 
+	/**
+	 * 更新処理、メインスレッドで必ず毎フレームごとに呼び出す
+	 */
 	public void onUpdate() {
 		this.dataManager.update();
 	}
 
+	/**
+	 * 接続しているプレイヤー全員に値を送信するメソッド
+	 * @param <T> 送信する値のデータ型
+	 * @param t 送信する値
+	 * @param key 送信するコンテナへのアクセサ
+	 * @throws IOException
+	 */
 	public <T> void send(T t, ContainerKey<T> key) throws IOException {
 		ByteBuffer bytes = this.typeManager.getBuffer(t, key.serializer);
 		this.dataManager.setSendData(t, this.getContainerID(key).orElseThrow(() -> new Error()));
@@ -157,6 +214,13 @@ public class Connections {
 		}
 	}
 
+	/**
+	 * {@link Connections#send(Object, ContainerKey) send}とは違い、以前に渡された値と今渡された値が一致しなかった時に送信する。
+	 * @param <T> 送信する値のデータ型
+	 * @param t 送信する値
+	 * @param key 送信するコンテナへのアクセサ
+	 * @throws IOException
+	 */
 	public <T> void share(T t, ContainerKey<T> key) throws IOException {
 		ByteBuffer bytes = this.typeManager.getBuffer(t, key.serializer);
 		for (Player player : this.getPlayers()) {
@@ -166,10 +230,20 @@ public class Connections {
 		this.dataManager.setSendData(t, this.getContainerID(key).orElseThrow(() -> new Error()));
 	}
 
+	/**
+	 * 接続を閉じるスレッド
+	 * @throws IOException
+	 */
 	public void close() throws IOException {
 		this.channel.close();
 	}
 
+	/**
+	 * 受信した値を格納する{@link Container}へのアクセサ
+	 * @author otamusan
+	 *
+	 * @param <T>
+	 */
 	public static class ContainerKey<T> {
 		private IDataSerializer<T> serializer;
 
