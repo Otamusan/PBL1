@@ -55,6 +55,10 @@ public class DataManagers {
 		this.receives.put(playerid, containers);
 	}
 
+	public void removeContainers(int playerid) {
+		this.receives.remove(playerid);
+	}
+
 	public void receive(Object value, int containerid, int playerid) {
 		this.getContainer(containerid, playerid).ifPresent(container -> {
 			container.put(value);
@@ -66,17 +70,19 @@ public class DataManagers {
 	}
 
 	public boolean shouldSend(Object value, int containerid) {
-		return this.sends.get(containerid).equals(value);
+		return !this.sends.get(containerid).equals(value);
 	}
 
 	public Optional<Object> getData(int containerid, int playerid) {
 		return this.getContainer(containerid, playerid).flatMap(Container::get);
 	}
 
-	public Boolean isChange(int containerid, int playerid) {
-		if (!this.getContainer(containerid, playerid).isPresent())
-			return false;
-		return this.getContainer(containerid, playerid).get().isChange();
+	public boolean isChange(int containerid, int playerid) {
+		return this.getContainer(containerid, playerid).map(Container::isChange).orElse(false);
+	}
+
+	public boolean checkRecieved(int containerid, int playerid) {
+		return this.getContainer(containerid, playerid).map(Container::checkReceived).orElse(false);
 	}
 
 	@Override

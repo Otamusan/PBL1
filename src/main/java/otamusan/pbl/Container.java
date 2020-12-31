@@ -11,10 +11,14 @@ public class Container {
 	private Object buffer;
 	private Object current;
 	private Object previous;
+	private boolean isReceivedbuffer = false;
+	private boolean isReceived = false;
 
 	public void update() {
 		this.previous = this.current;
 		this.current = this.buffer;
+		this.isReceived = this.isReceivedbuffer;
+		this.isReceivedbuffer = false;
 	}
 
 	/**
@@ -23,6 +27,17 @@ public class Container {
 	 */
 	public void put(Object t) {
 		this.buffer = t;
+		this.isReceivedbuffer = true;
+	}
+
+	/**
+	 * 値の変化に関わらず、前回呼び出された後から現在までに値を受け取ったか確認するメソッド
+	 * @return
+	 */
+	public boolean checkReceived() {
+		boolean b = this.isReceived;
+		this.isReceived = false;
+		return b;
 	}
 
 	/**

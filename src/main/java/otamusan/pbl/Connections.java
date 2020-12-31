@@ -10,9 +10,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.function.Consumer;
 
 import otamusan.pbl.Data.IDataSerializer;
+import otamusan.pbl.Data.Types;
 
 /**
  * 通信を管理するクラス。
@@ -20,13 +23,17 @@ import otamusan.pbl.Data.IDataSerializer;
  *
  */
 public class Connections {
-	private DatagramChannel channel;
-	private InetSocketAddress addressReceive;
+	protected DatagramChannel channel;
+	protected InetSocketAddress addressReceive;
 	private Map<Integer, Player> players;
 	protected DataManagers dataManager;
 	protected TypeManager typeManager;
-	private Thread thread;
+	protected Thread thread;
 	private Map<Integer, ContainerKey<?>> keyMap;
+	private Map<Integer, PlayerKey> playerKeys;
+	private ContainerKey<Integer> connectionCheck;
+	private long maxResponseTime = 1500;
+	private long sendResponseCheckInterval = 1000;
 
 	/**
 	 *
@@ -37,9 +44,20 @@ public class Connections {
 		this.addressReceive = receive;
 		this.typeManager = new TypeManager();
 		this.players = new HashMap<Integer, Player>();
+		this.playerKeys = new HashMap<Integer, Connections.PlayerKey>();
 		this.keyMap = new HashMap<>();
-		containerRegister.accept(new RegisterKey(this));
+		RegisterKey key = new RegisterKey(this);
+		containerRegister.accept(key);
+		this.connectionCheck = key.register(Types.TYPE_INT);
 		this.dataManager = new DataManagers(this.typeManager.getSerializerSize());
+	}
+
+	/**
+	 * 送受信するデータのByte数の最大値。デフォルトは1024
+	 * @param cap
+	 */
+	public void setByteCapacity(int cap) {
+		this.typeManager.setByteCapacity(cap);
 	}
 
 	private Optional<Integer> getPlayerID(Player player) {
@@ -50,21 +68,81 @@ public class Connections {
 		return Optional.empty();
 	}
 
-	public List<Player> getPlayers() {
-		return new ArrayList<Player>(this.players.values());
+	private Optional<Integer> getPlayerID(PlayerKey key) {
+		for (Integer id : this.playerKeys.keySet()) {
+			if (this.playerKeys.get(id) == key)
+				return Optional.of(id);
+		}
+		return Optional.empty();
+	}
+
+	protected Optional<PlayerKey> getPlayerKey(Player player) {
+		return this.getPlayerID(player).map(this.playerKeys::get);
 	}
 
 	/**
 	 *
-	 * @param player
-	 * @return 与えられたプレイヤーが存在するか
+	 * @param key 接続状況を調べる{@link PlayerKey}
+	 * @return 指定した{@link Player}が存在しないときは{@link Optional#empty()}、ちょうどフレーム内で切断したときはtrueを返す。
 	 */
-	public boolean isExist(Player player) {
-		for (Player p : this.getPlayers()) {
-			if (player.equals(p))
-				return true;
+	public boolean isDisconnecting(PlayerKey key) {
+		return this.getPlayer(key).map(Player::isDead).orElse(false);
+	}
+
+	/**
+	 * 接続できたか確認するメソッド
+	 * @param key
+	 * @return
+	 */
+	public boolean isConnected(PlayerKey key) {
+		return this.getPlayer(key).map(Player::isConnected).orElse(false);
+	}
+
+	/**
+	 * 指定された{@link Player}が接続できたときにtrueを返す。
+	 * 厳密には接続後に指定された{@link Player}に対してこのメソッドが初めて呼び出されたときtrueを返す。
+	 * @param key
+	 * @return
+	 */
+	public boolean checkConnecting(PlayerKey key) {
+		return this.getPlayer(key).map(Player::checkConnected).orElse(false);
+	}
+
+	private Optional<Player> getPlayer(PlayerKey key) {
+		return this.getPlayerID(key).flatMap(this::getPlayer);
+	}
+
+	private Optional<Player> getPlayer(int id) {
+		if (!this.players.containsKey(id))
+			return Optional.empty();
+		return Optional.of(this.players.get(id));
+	}
+
+	public Optional<InetSocketAddress> getAddress(PlayerKey key) {
+		return this.getPlayer(key).map(Player::getAddress);
+	}
+
+	/**
+	 * use {@link Connections#IteratePlayers(Consumer)}
+	 * @return 各プレイヤーへのアクセサの全体
+	 */
+	@Deprecated
+	public List<PlayerKey> getPlayerKeys() {
+		return new ArrayList<Connections.PlayerKey>(this.playerKeys.values());
+	}
+
+	/**
+	 * 与えられた{@link Consumer}を各{@link Player}の{@link PlayerKey}で反復処理を行うメソッド
+	 * @param 与えられたPlayerKeyに対して行いたい処理
+	 */
+	public void IteratePlayers(Consumer<PlayerKey> consumer) {
+		for (PlayerKey player : this.playerKeys.values()) {
+			consumer.accept(player);
 		}
-		return false;
+	}
+
+	private List<Player> getPlayers() {
+		return new ArrayList<Player>(this.players.values());
 	}
 
 	/**
@@ -108,8 +186,8 @@ public class Connections {
 	 * @param player 通信を行っているプレイヤー
 	 * @return
 	 */
-	public <T> Boolean isChange(ContainerKey<T> key, Player player) {
-		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(player)
+	public <T> Boolean isChange(ContainerKey<T> key, PlayerKey playerkey) {
+		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(playerkey)
 				.map(playerid -> this.dataManager.isChange(containerid, playerid))).orElse(false);
 	}
 
@@ -117,13 +195,25 @@ public class Connections {
 	 * 指定した{@link Container}の値を取得するメソッド
 	 * @param <T> 格納される値のデータ型
 	 * @param key 値を取得したいコンテナへのアクセサ
-	 * @param player 通信を行っているプレイヤー
+	 * @param player 通信を行っているプレイヤーへのアクセサ
 	 * @return 格納されていた値
 	 */
-	public <T> Optional<T> getData(ContainerKey<T> key, Player player) {
-		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(player)
+	public <T> Optional<T> getData(ContainerKey<T> key, PlayerKey playerkey) {
+		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(playerkey)
 				.flatMap(playerid -> this.dataManager.getData(containerid, playerid)
 						.flatMap(t -> key.serializer.cast(t))));
+	}
+
+	/**
+	 * 前回呼び出した後から現在までに指定した{@link Container}が値を受け取ったかを確認するメソッド
+	 * @param <T> 格納される値のデータ型
+	 * @param key 確認したいコンテナへのアクセサ
+	 * @param player 通信を行っているプレイヤーへのアクセサ
+	 * @return 値を受け取っていたらtrue
+	 */
+	public <T> Boolean checkReceived(ContainerKey<T> key, PlayerKey playerkey) {
+		return this.getContainerID(key).flatMap(containerid -> this.getPlayerID(playerkey)
+				.map(playerid -> this.dataManager.checkRecieved(containerid, playerid))).orElse(false);
 	}
 
 	public void addPlayer(Player player) {
@@ -133,7 +223,15 @@ public class Connections {
 				c = i;
 		}
 		this.players.put(c, player);
+		this.playerKeys.put(c, new PlayerKey());
 		this.dataManager.addContainers(this.getPlayerID(player).orElseThrow(() -> new Error("error")));
+	}
+
+	public void removePlayer(Player player) {
+		int id = this.getPlayerID(player).orElseThrow(() -> new Error());
+		this.players.remove(id);
+		this.playerKeys.remove(id);
+		this.dataManager.removeContainers(id);
 	}
 
 	/**
@@ -145,6 +243,24 @@ public class Connections {
 		this.channel.socket().bind(this.addressReceive);
 		this.thread = new Thread(new Read(this.channel, this));
 		this.thread.start();
+		this.startAccessCheck();
+	}
+
+	protected void startAccessCheck() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				new Timer().schedule(new TimerTask() {
+					@Override
+					public void run() {
+						try {
+							Connections.this.send(3, Connections.this.connectionCheck);
+						} catch (IOException e) {
+						}
+					}
+				}, 1, Connections.this.sendResponseCheckInterval);
+			}
+		}).start();
 	}
 
 	/**
@@ -152,7 +268,7 @@ public class Connections {
 	 * @author otamusan
 	 *
 	 */
-	private static class Read implements Runnable {
+	static class Read implements Runnable {
 		private DatagramChannel channel;
 		private Connections data;
 
@@ -169,22 +285,36 @@ public class Connections {
 				try {
 					address = this.channel.receive(bb);
 				} catch (IOException e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 				bb.flip();
 				if (address instanceof InetSocketAddress) {
-					this.data.receive(bb, new Player((InetSocketAddress) address));
+					this.data.receive(bb, (InetSocketAddress) address);
 				}
 			}
 		}
 	}
 
-	protected void receive(ByteBuffer raw, Player player) {
-		if (!this.isExist(player)) {
-			System.out.println("connected by" + player.toString());
-			this.addPlayer(player);
+	private Optional<Player> getPlayer(InetSocketAddress address) {
+		for (Player player : this.getPlayers()) {
+			if (player.getAddress().equals(address))
+				return Optional.of(player);
 		}
+		return Optional.empty();
+	}
+
+	protected void receive(ByteBuffer raw, InetSocketAddress address) {
+		Player player = this.getPlayer(address).orElseGet(() -> {
+			Player p = new Player(address);
+			this.addPlayer(p);
+			return p;
+		});
 		int containerid = this.typeManager.parseContainerId(raw);
+
+		if (containerid == this.getContainerID(this.connectionCheck).get()) {
+			player.onResponse();
+		}
+
 		IDataSerializer<?> serializer = this.typeManager.getSerializer(containerid);
 		Object value = serializer.decode(raw);
 		this.getPlayerID(player).ifPresent(id -> {
@@ -196,7 +326,17 @@ public class Connections {
 	 * 更新処理、メインスレッドで必ず毎フレームごとに呼び出す
 	 */
 	public void onUpdate() {
+
+		for (Player player : this.getPlayers()) {
+			if (player.isDead()) {
+				this.removePlayer(player);
+			}
+		}
 		this.dataManager.update();
+		for (Player player : this.getPlayers()) {
+			if (player.getResponseTime() >= this.maxResponseTime)
+				player.kill();
+		}
 	}
 
 	/**
@@ -216,6 +356,7 @@ public class Connections {
 
 	/**
 	 * {@link Connections#send(Object, ContainerKey) send}とは違い、以前に渡された値と今渡された値が一致しなかった時に送信する。
+	 * また、送信されなかった場合{@link Connections#checkReceived(ContainerKey, PlayerKey)に反映されない}
 	 * @param <T> 送信する値のデータ型
 	 * @param t 送信する値
 	 * @param key 送信するコンテナへのアクセサ
@@ -224,6 +365,8 @@ public class Connections {
 	public <T> void share(T t, ContainerKey<T> key) throws IOException {
 		ByteBuffer bytes = this.typeManager.getBuffer(t, key.serializer);
 		for (Player player : this.getPlayers()) {
+			if (!this.getContainerID(key).map(id -> this.dataManager.shouldSend(t, id)).orElse(false))
+				continue;
 			this.channel.send(bytes.asReadOnlyBuffer(), player.getAddress());
 		}
 
@@ -254,6 +397,8 @@ public class Connections {
 		public IDataSerializer<T> getDataType() {
 			return this.serializer;
 		}
+	}
 
+	public static class PlayerKey {
 	}
 }

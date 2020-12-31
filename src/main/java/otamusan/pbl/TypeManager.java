@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 import otamusan.pbl.Data.IDataSerializer;
-import otamusan.pbl.Data.TypeChar;
-import otamusan.pbl.Data.TypeDouble;
-import otamusan.pbl.Data.TypeInt;
 
 /**
  * 送受信する値の型を管理するクラス
@@ -18,14 +15,15 @@ import otamusan.pbl.Data.TypeInt;
 public class TypeManager {
 	private int count;
 	private List<IDataSerializer<?>> serializers;
-	public final int CAP = 1024;
+	public int CAP;
 
-	public static final IDataSerializer<Integer> TYPE_INT = new TypeInt();
-	public static final IDataSerializer<Double> TYPE_DOUBLE = new TypeDouble();
-	public static final IDataSerializer<Character> TYPE_CHAR = new TypeChar();
+	public void setByteCapacity(int cap) {
+		this.CAP = cap;
+	}
 
 	public TypeManager() {
 		this.serializers = new ArrayList<IDataSerializer<?>>();
+		this.CAP = 1024;
 	}
 
 	public int getSerializerSize() {

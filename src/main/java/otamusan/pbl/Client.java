@@ -8,15 +8,13 @@ import java.util.TimerTask;
 
 public class Client {
 	private int delay;
-
 	protected Connection connection;
 
 	public Client(int delay) {
 		this.delay = delay;
-		this.connection = new Connection(new InetSocketAddress("localhost", 445),
-				new InetSocketAddress("localhost", 444), connection -> {
-					ContainerKeys.init(connection);
-				});
+		this.connection = new Connection(new InetSocketAddress("localhost", 445), connection -> {
+			ContainerKeys.init(connection);
+		});
 
 	}
 
@@ -43,7 +41,7 @@ public class Client {
 			Scanner scan = new Scanner(System.in);
 			String str = scan.next();
 			try {
-				this.connection.share(str.charAt(0), ContainerKeys.cha);
+				this.connection.send(str, ContainerKeys.message);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -51,8 +49,14 @@ public class Client {
 	}
 
 	public void onUpdate() {
-		if (this.connection.isChange(ContainerKeys.cha)) {
-			System.out.println(this.connection.getData(ContainerKeys.cha));
+		if (this.connection.checkReceived(ContainerKeys.message)) {
+			this.connection.getData(ContainerKeys.message).ifPresent(System.out::println);
+		}
+		if (this.connection.isDisconnecting()) {
+			System.out.println("disconnected:" + this.connection.getAddress());
+		}
+		if (this.connection.checkConnecting()) {
+			System.out.println("connected:" + this.connection.getAddress());
 		}
 		this.connection.onUpdate();
 	}

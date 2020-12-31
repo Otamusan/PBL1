@@ -41,7 +41,7 @@ public class Server {
 
 			String str = scan.next();
 			try {
-				this.connection.share(str.charAt(0), ContainerKeys.cha);
+				this.connection.send(str, ContainerKeys.message);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -49,11 +49,19 @@ public class Server {
 	}
 
 	public void onUpdate() {
-		for (Player player : this.connection.getPlayers()) {
-			if (this.connection.isChange(ContainerKeys.cha, player)) {
-				System.out.println(this.connection.getData(ContainerKeys.cha, player));
+
+		this.connection.IteratePlayers((playerkey) -> {
+			if (this.connection.checkReceived(ContainerKeys.message, playerkey)) {
+				this.connection.getData(ContainerKeys.message, playerkey).ifPresent(System.out::println);
 			}
-		}
+			if (this.connection.isDisconnecting(playerkey)) {
+				System.out.println("disconnected:" + this.connection.getAddress(playerkey));
+			}
+			if (this.connection.checkConnecting(playerkey)) {
+				System.out.println("connected:" + this.connection.getAddress(playerkey));
+			}
+		});
+
 		this.connection.onUpdate();
 	}
 }
