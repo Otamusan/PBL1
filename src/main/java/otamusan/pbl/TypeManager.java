@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import otamusan.pbl.Data.IDataSerializer;
+import otamusan.pbl.data.IDataSerializer;
 
 /**
  * 送受信する値の型を管理するクラス

@@ -2,18 +2,25 @@ apply plugin: 'eclipse'
 apply plugin: 'application'
 apply plugin: 'java'
 
-mainClassName = 'otamusan.pbl.App'
+compileJava.options.encoding = 'UTF-8'
+
 buildscript{
 	repositories {
-        	mavenCentral()
-    	}
+       	mavenCentral()
+    }
+}
+task runSampleClient(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	main = 'otamusan.pbl.sample.SampleClient'
 }
 
+task runSampleServer(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	main = 'otamusan.pbl.sample.SampleServer'
+}
 repositories {
-        mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    	implementation 'javax.websocket:javax.websocket-api:1.1'
-    	implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:2.0.0-M3'
 }

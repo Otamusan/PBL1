@@ -14,8 +14,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 
-import otamusan.pbl.Data.IDataSerializer;
-import otamusan.pbl.Data.Types;
+import otamusan.pbl.data.IDataSerializer;
+import otamusan.pbl.data.Types;
 
 /**
  * 通信を管理するクラス。

@@ -11,7 +11,7 @@ public class Client2 extends Client {
 	}
 
 	public static void main(String[] args) {
-		Client2 client = new Client2(App.delay);
+		Client2 client = new Client2(17);
 		client.run();
 	}
 }

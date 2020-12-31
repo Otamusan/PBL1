@@ -1,8 +1,8 @@
-package otamusan.pbl.Data;
+package otamusan.pbl.data;
 
 import java.util.List;
 
-import otamusan.pbl.Util.Tuple;
+import otamusan.pbl.util.Tuple;
 
 public class Types {
 	public static final IDataSerializer<Integer> TYPE_INT = new TypeInt();

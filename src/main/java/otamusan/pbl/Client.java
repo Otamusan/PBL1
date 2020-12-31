@@ -19,7 +19,7 @@ public class Client {
 	}
 
 	public static void main(String[] args) {
-		Client client = new Client(App.delay);
+		Client client = new Client(17);
 		client.run();
 	}
 

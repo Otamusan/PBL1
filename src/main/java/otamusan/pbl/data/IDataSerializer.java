@@ -1,4 +1,4 @@
-package otamusan.pbl.Data;
+package otamusan.pbl.data;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;

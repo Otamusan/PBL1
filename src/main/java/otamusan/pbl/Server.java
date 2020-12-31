@@ -18,7 +18,7 @@ public class Server {
 	}
 
 	public static void main(String[] args) {
-		Server server = new Server(App.delay);
+		Server server = new Server(17);
 		server.run();
 	}
 
