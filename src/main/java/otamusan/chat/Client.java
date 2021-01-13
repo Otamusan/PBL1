@@ -23,7 +23,7 @@ public class Client {
 		System.out.println("Server Address?");
 		String address= scan.next();
 
-		this.connection = new Connection(new InetSocketAddress(address, 445), connection -> {
+		this.connection = new Connection(new InetSocketAddress(address, 44557), connection -> {
 			ContainerKeys.init(connection);
 		});
 	}
@@ -73,5 +73,11 @@ public class Client {
 			}
 		}
 		this.connection.onUpdate();
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		connection.close();
 	}
 }

@@ -13,6 +13,7 @@ buildscript{
 }
 
 project.version = '1.0.0'
+
 task runSampleClient(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	main = 'otamusan.pblconnection.sample.SampleClient'
@@ -21,6 +22,18 @@ task runSampleClient(type: JavaExec) {
 task runSampleServer(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	main = 'otamusan.pblconnection.sample.SampleServer'
+}
+
+task runChatClient(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	standardInput = System.in
+	main = 'otamusan.chat.Client'
+}
+
+task runChatServer(type: JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
+	standardInput = System.in
+	main = 'otamusan.chat.Server'
 }
 
 repositories {

@@ -133,7 +133,7 @@ public class Connections {
 
 	/**
 	 * 与えられた{@link Consumer}を各{@link Player}の{@link PlayerKey}で反復処理を行うメソッド
-	 * @param 与えられたPlayerKeyに対して行いたい処理
+	 * @param consumer 与えられたPlayerKeyに対して行いたい処理
 	 */
 	public void IteratePlayers(Consumer<PlayerKey> consumer) {
 		for (PlayerKey player : this.playerKeys.values()) {
@@ -183,7 +183,7 @@ public class Connections {
 	 * 指定した{@link Container}の値が一つ前のフレームから現在にかけて変化しているかを返すメソッド
 	 * @param <T> 格納される値のデータ型
 	 * @param key 調べたいコンテナへのアクセサ
-	 * @param player 通信を行っているプレイヤー
+	 * @param playerkey 通信を行っているプレイヤー
 	 * @return
 	 */
 	public <T> Boolean isChange(ContainerKey<T> key, PlayerKey playerkey) {
@@ -195,7 +195,7 @@ public class Connections {
 	 * 指定した{@link Container}の値を取得するメソッド
 	 * @param <T> 格納される値のデータ型
 	 * @param key 値を取得したいコンテナへのアクセサ
-	 * @param player 通信を行っているプレイヤーへのアクセサ
+	 * @param playerkey 通信を行っているプレイヤーへのアクセサ
 	 * @return 格納されていた値
 	 */
 	public <T> Optional<T> getData(ContainerKey<T> key, PlayerKey playerkey) {
@@ -208,7 +208,7 @@ public class Connections {
 	 * 前回呼び出した後から現在までに指定した{@link Container}が値を受け取ったかを確認するメソッド
 	 * @param <T> 格納される値のデータ型
 	 * @param key 確認したいコンテナへのアクセサ
-	 * @param player 通信を行っているプレイヤーへのアクセサ
+	 * @param playerkey 通信を行っているプレイヤーへのアクセサ
 	 * @return 値を受け取っていたらtrue
 	 */
 	public <T> Boolean checkReceived(ContainerKey<T> key, PlayerKey playerkey) {
@@ -218,9 +218,9 @@ public class Connections {
 
 	public void addPlayer(Player player) {
 		int c = 0;
-		for (int i = 0; i < this.players.size(); i++) {
-			if (!this.players.containsKey(i))
-				c = i;
+		for (int i = 0; i < this.players.size()+1; i++) {
+			if (this.players.containsKey(i)) continue;
+			c = i;
 		}
 		this.players.put(c, player);
 		this.playerKeys.put(c, new PlayerKey());
@@ -356,7 +356,7 @@ public class Connections {
 
 	/**
 	 * {@link Connections#send(Object, ContainerKey) send}とは違い、以前に渡された値と今渡された値が一致しなかった時に送信する。
-	 * また、送信されなかった場合{@link Connections#checkReceived(ContainerKey, PlayerKey)に反映されない}
+	 * また、送信されなかった場合{@link Connections#checkReceived(ContainerKey, PlayerKey)}に反映されない
 	 * @param <T> 送信する値のデータ型
 	 * @param t 送信する値
 	 * @param key 送信するコンテナへのアクセサ
@@ -379,6 +379,7 @@ public class Connections {
 	 */
 	public void close() throws IOException {
 		this.channel.close();
+		channel.socket().close();
 	}
 
 	/**

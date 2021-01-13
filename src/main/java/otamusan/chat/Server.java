@@ -19,7 +19,7 @@ public class Server {
 		scan = new Scanner(System.in);
 
 
-		this.connection = new Connections(new InetSocketAddress(445), key -> {
+		this.connection = new Connections(new InetSocketAddress(44557), key -> {
 			ContainerKeys.init(key);
 		});
 	}
@@ -45,6 +45,7 @@ public class Server {
 
 		while (true) {
 			String str = scan.next();
+			System.out.println(str);
 			try {
 				this.connection.send(str, ContainerKeys.message);
 			} catch (IOException e) {
@@ -54,7 +55,6 @@ public class Server {
 	}
 
 	public void onUpdate() {
-
 		this.connection.IteratePlayers((playerkey) -> {
 			if (this.connection.checkReceived(ContainerKeys.message, playerkey)) {
 				this.connection.getData(ContainerKeys.message, playerkey).ifPresent((string->{
@@ -75,5 +75,11 @@ public class Server {
 		});
 
 		this.connection.onUpdate();
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		connection.close();
 	}
 }
