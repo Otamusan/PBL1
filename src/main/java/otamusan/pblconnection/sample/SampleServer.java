@@ -1,12 +1,12 @@
-package otamusan.pbl.sample;
+package otamusan.pblconnection.sample;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import otamusan.pbl.Connections;
-import otamusan.pbl.ContainerKeys;
+import otamusan.pblconnection.Connections;
+import otamusan.chat.ContainerKeys;
 
 public class SampleServer {
 	public static Connections connection;

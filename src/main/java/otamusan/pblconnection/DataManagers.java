@@ -1,4 +1,4 @@
-package otamusan.pbl;
+package otamusan.pblconnection;
 
 import java.util.ArrayList;
 import java.util.HashMap;

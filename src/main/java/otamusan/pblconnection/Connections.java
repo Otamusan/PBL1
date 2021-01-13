@@ -1,4 +1,4 @@
-package otamusan.pbl;
+package otamusan.pblconnection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -14,8 +14,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Consumer;
 
-import otamusan.pbl.data.IDataSerializer;
-import otamusan.pbl.data.Types;
+import otamusan.pblconnection.data.IDataSerializer;
+import otamusan.pblconnection.data.Types;
 
 /**
  * 通信を管理するクラス。

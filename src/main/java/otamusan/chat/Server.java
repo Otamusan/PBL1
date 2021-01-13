@@ -1,4 +1,6 @@
-package otamusan.pbl;
+package otamusan.chat;
+
+import otamusan.pblconnection.Connections;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -9,9 +11,14 @@ import java.util.TimerTask;
 public class Server {
 	private int delay;
 	private Connections connection;
-
+	private String userName;
+	private Scanner scan;
 	public Server(int delay) {
 		this.delay = delay;
+
+		scan = new Scanner(System.in);
+
+
 		this.connection = new Connections(new InetSocketAddress(445), key -> {
 			ContainerKeys.init(key);
 		});
@@ -37,8 +44,6 @@ public class Server {
 		}, 1, this.delay);
 
 		while (true) {
-			Scanner scan = new Scanner(System.in);
-
 			String str = scan.next();
 			try {
 				this.connection.send(str, ContainerKeys.message);
@@ -52,7 +57,14 @@ public class Server {
 
 		this.connection.IteratePlayers((playerkey) -> {
 			if (this.connection.checkReceived(ContainerKeys.message, playerkey)) {
-				this.connection.getData(ContainerKeys.message, playerkey).ifPresent(System.out::println);
+				this.connection.getData(ContainerKeys.message, playerkey).ifPresent((string->{
+					try {
+						connection.send(this.connection.getData(ContainerKeys.userName, playerkey).orElse("Unknown")+":"+string, ContainerKeys.message);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}));
+
 			}
 			if (this.connection.isDisconnecting(playerkey)) {
 				System.out.println("disconnected:" + this.connection.getAddress(playerkey));

@@ -1,9 +1,9 @@
-package otamusan.pbl.data;
+package otamusan.pblconnection.data;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
 
-import otamusan.pbl.util.Tuple;
+import otamusan.pblconnection.util.Tuple;
 
 public class TypeTuple<L, R> implements IDataSerializer<Tuple<L, R>> {
 

@@ -1,11 +1,11 @@
-package otamusan.pbl;
+package otamusan.pblconnection;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import otamusan.pbl.data.IDataSerializer;
+import otamusan.pblconnection.data.IDataSerializer;
 
 /**
  * 送受信する値の型を管理するクラス

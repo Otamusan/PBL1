@@ -1,17 +1,16 @@
-package otamusan.pbl.sample;
+package otamusan.pblconnection.sample;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import otamusan.pbl.Connection;
-import otamusan.pbl.ContainerKeys;
+import otamusan.pblconnection.Connection;
+import otamusan.chat.ContainerKeys;
 
 public class SampleClient {
 	public static Connection connection;
 	public final static int period = 17;
-	//
 
 	public static void main(String[] args) {
 		connection = new Connection(new InetSocketAddress("localhost", 445),

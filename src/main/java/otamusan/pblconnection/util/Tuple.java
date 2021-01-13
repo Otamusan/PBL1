@@ -1,4 +1,4 @@
-package otamusan.pbl.util;
+package otamusan.pblconnection.util;
 
 /**
  * 任意の値の二つ組

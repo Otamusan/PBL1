@@ -1,4 +1,4 @@
-package otamusan.pbl;
+package otamusan.pblconnection;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

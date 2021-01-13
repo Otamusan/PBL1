@@ -2,22 +2,27 @@ apply plugin: 'eclipse'
 apply plugin: 'application'
 apply plugin: 'java'
 
-compileJava.options.encoding = 'UTF-8'
+compileJava{
+	options.encoding = 'UTF-8'
+}
 
 buildscript{
 	repositories {
        	mavenCentral()
     }
 }
+
+project.version = '1.0.0'
 task runSampleClient(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
-	main = 'otamusan.pbl.sample.SampleClient'
+	main = 'otamusan.pblconnection.sample.SampleClient'
 }
 
 task runSampleServer(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
-	main = 'otamusan.pbl.sample.SampleServer'
+	main = 'otamusan.pblconnection.sample.SampleServer'
 }
+
 repositories {
 	mavenCentral()
 }

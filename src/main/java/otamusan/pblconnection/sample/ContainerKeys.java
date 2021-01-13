@@ -1,12 +1,13 @@
-package otamusan.pbl.sample;
+package otamusan.pblconnection.sample;
 
-import otamusan.pbl.Connections.ContainerKey;
-import otamusan.pbl.Connections.RegisterKey;
-import otamusan.pbl.data.Types;
+import otamusan.pblconnection.Connections;
+import otamusan.pblconnection.Connections.ContainerKey;
+import otamusan.pblconnection.Connections.RegisterKey;
+import otamusan.pblconnection.data.Types;
 
 
 public class ContainerKeys {
-	public static otamusan.pbl.Connections.ContainerKey<Character> cha;
+	public static Connections.ContainerKey<Character> cha;
 	public static ContainerKey<String> message;
 	//Client側の登録とServer側の登録が食い違うと厄介なことになるので、どちらからでも呼び出したり取得したContainerKeyを参照できるように、
 	// 登録にはStaticメソッドとStaticフィールドを使用することを推奨する。
