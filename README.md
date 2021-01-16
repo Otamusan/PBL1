@@ -1,7 +1,6 @@
 # PBL1
+チャットプログラムの実行方法
 
-環境構築  
-Pleiades All in One(Eclipse)を用意  
-forkしたファイル内で\gradlew eclipseを実行  
-JavaのProjectとして開く  
-適宜.launchファイルをimportする。  
+「git clone https://github.com/Otamusan/PBLConnectionAPI.git」を実行。
+
+cloneされたフォルダ内で「\gradlew runChatServer」か「\gradlew runChatClient」を実行。
